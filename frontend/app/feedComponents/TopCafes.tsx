@@ -3,15 +3,15 @@ import { View, Text } from 'react-native';
 import styles from './styles';
 import Entypo from '@expo/vector-icons/Entypo';
 
-export default function TopCafesByDrinks({ cafes }: { cafes: any[] }) {
+type Props = {
+  category: string;
+  cafes: any[];
+};
+
+export default function TopCafesByDrinks({ category, cafes }: Props) {
   return (
+    
     <View>
-      <Text style={styles.sectionHeader}>Top Cafes by Drinks</Text>
-      <View style={styles.tabHeader}>
-        {["Coffee", "Matcha", "Tea"].map(drink => (
-          <View key={drink} style={styles.tab}><Text>{drink}</Text></View>
-        ))}
-      </View>
       {cafes.slice(0, 3).map((cafe, index) => (
         <View key={cafe._id} style={styles.rankCard}>
           <Text>{index + 1}. {cafe.name}</Text>

@@ -12,6 +12,7 @@ const client = new MongoClient(uri, {
     strict: true,
     deprecationErrors: true,
   },
+  autoSelectFamily: false
 });
 
 const connectToMongo = async () => {

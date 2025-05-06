@@ -4,6 +4,7 @@ import TrendingSection from '../feedComponents/TrendingSection';
 import styles from '../feedComponents/styles';
 import CafeCollection from '../feedComponents/CafeCollection';
 import TopCafes from '../feedComponents/TopCafes';
+import Feather from '@expo/vector-icons/Feather';
 
 type Cafe = {
   _id: string;
@@ -70,7 +71,10 @@ export default function FeedScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>Welcome</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.header}>Welcome</Text>
+        <Feather name="bell" size={20} color="black" />
+      </View>
       <View style={styles.searchBar}>
         <Text>🔍 What are you looking for?</Text>
       </View>

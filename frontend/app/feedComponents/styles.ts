@@ -3,6 +3,12 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   container: { padding: 16 },
   header: { fontSize: 28, fontWeight: 'bold', marginBottom: 12 },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   searchBar: {
     backgroundColor: '#eee', padding: 10, borderRadius: 8, marginBottom: 16
   },

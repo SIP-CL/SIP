@@ -19,7 +19,7 @@ exports.getByName = async (req, res) => {
 
   try {
     const cafe = await cafesCollection.findOne({ name: cafeName });
-    
+
     if (!cafe) {
       return res.status(404).send("Cafe not found");
     }
@@ -28,5 +28,24 @@ exports.getByName = async (req, res) => {
   } catch (err) {
     console.error("Failed to fetch cafe by name:", err);
     res.status(500).send("Server error");
+  }
+};
+
+exports.searchCafes = async (req, res) => {
+  const { name } = req.query;
+
+  if (!name || name.trim() === "") {
+    return res.status(400).json({ message: "Missing search query" });
+  }
+
+  try {
+    const cafes = await cafesCollection.find({
+      name: { $regex: name, $options: 'i' } // case-insensitive match
+    }).toArray();
+
+    res.json(cafes);
+  } catch (err) {
+    console.error("Error searching cafes:", err);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

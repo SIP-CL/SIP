@@ -5,7 +5,8 @@ import styles from '../feedComponents/styles';
 import CafeCollection from '../feedComponents/CafeCollection';
 import TopCafes from '../feedComponents/TopCafes';
 import Feather from '@expo/vector-icons/Feather';
-
+import { useRouter } from 'expo-router';
+import SearchBar from "../feedComponents/search";
 type Cafe = {
   _id: string;
   name: string;
@@ -17,6 +18,10 @@ type Cafe = {
 
 export default function FeedScreen() {
   const [cafes, setCafes] = useState<Cafe[]>([]);
+  const [selectedDrink, setSelectedDrink] = useState("Coffee");
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+
 
   useEffect(() => {
     fetch('http://localhost:3000/cafes/getAll')
@@ -31,16 +36,13 @@ export default function FeedScreen() {
       .sort(() => Math.random() - 0.5);
   }, [cafes]);
 
-
-  const [selectedDrink, setSelectedDrink] = useState("Coffee");
-
   const coffeeCafes = cafes
-  .filter(c => c.drinkCategories?.includes("Coffee"))
-  .sort((a, b) =>
-    b.rating !== a.rating
-      ? b.rating - a.rating
-      : b.numReviews - a.numReviews
-  );
+    .filter(c => c.drinkCategories?.includes("Coffee"))
+    .sort((a, b) =>
+      b.rating !== a.rating
+        ? b.rating - a.rating
+        : b.numReviews - a.numReviews
+    );
 
   const matchaCafes = cafes
     .filter(c => c.drinkCategories?.includes("Matcha"))
@@ -75,24 +77,31 @@ export default function FeedScreen() {
         <Text style={styles.header}>Welcome</Text>
         <Feather name="bell" size={20} color="black" />
       </View>
-      <View style={styles.searchBar}>
-        <Text>🔍 What are you looking for?</Text>
-      </View>
+
+      <SearchBar query={searchQuery} setQuery={setSearchQuery} />
+
       <View style={styles.divider} />
       <TrendingSection cafes={trendingCafes} />
       <CafeCollection />
+
       <Text style={styles.sectionHeader}>Top Cafes by Drinks</Text>
       <View style={styles.tabHeader}>
         {drinkTabs.map(drink => (
           <TouchableOpacity
             key={drink}
-            style={[styles.tab, selectedDrink === drink && { borderBottomColor: 'black', borderBottomWidth: 2 }]}
+            style={[
+              styles.tab,
+              selectedDrink === drink && { borderBottomColor: 'black', borderBottomWidth: 2 }
+            ]}
             onPress={() => setSelectedDrink(drink)}
           >
-            <Text style={{ fontWeight: selectedDrink === drink ? 'bold' : 'normal' }}>{drink}</Text>
+            <Text style={{ fontWeight: selectedDrink === drink ? 'bold' : 'normal' }}>
+              {drink}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
+
       <TopCafes
         category={selectedDrink}
         cafes={getCafesForDrink(selectedDrink)}

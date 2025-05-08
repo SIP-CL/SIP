@@ -33,7 +33,23 @@ export default function CafeScreen() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const [cafe, setCafe] = useState<any>(null);
 
+  const fetchCafeInfo = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/cafes/getByID/${cafeID}`);
+      const data = await response.json();
+      console.log('Cafe data:', data);
+      setCafe(data);
+    } catch (error) {
+      console.error('Error fetching cafe info:', error);
+      Alert.alert('Error', 'There was a problem fetching cafe information.');
+    }
+  }
+
+  useEffect(() => {
+    fetchCafeInfo();
+  }, []);
   const fetchReviews = async () => {
     setLoading(true);
     try {
@@ -93,6 +109,16 @@ export default function CafeScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {cafe && (
+        <View style={styles.cafeInfo}>
+          <View style={styles.cafeHeaderRow}>
+            <Text style={styles.cafeName}>{cafe.name}</Text>
+            <StarRating rating={parseFloat(cafe.rating) || 0} size={20} readOnly />
+          </View>
+          <Text style={styles.cafeAddress}>{cafe.address}</Text>
+        </View>
+      )}
+
       {showForm ? (
         <ReviewForm onSubmit={submitReview} onCancel={() => setShowForm(false)} />
       ) : (
@@ -114,7 +140,7 @@ export default function CafeScreen() {
                 return (
                   <Pressable key={index} style={styles.reviewCard} onPress={() => toggleCard(index)}>
                     <View style={styles.headerRow}>
-                      <Text style={styles.reviewUser}>User: {review.userID}</Text>
+                      <Text style={styles.reviewUser}>{review.userID}</Text>
                       <StarRating rating={review.rating?.[0] || 0} size={20} readOnly />
                     </View>
 
@@ -202,6 +228,33 @@ const styles = StyleSheet.create({
   },
   expandedContent: {
     paddingTop: 10, // 👈 increase this value as needed
+  },
+  cafeInfo: {
+    marginBottom: 20,
+    width: '100%',
+    backgroundColor: '#f9f9f9',
+    padding: 16,
+    borderRadius: 8,
+  },
+  cafeHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between', // or 'flex-start' if you prefer
+    marginBottom: 4,
+  },
+  cafeName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginRight: 10,
+  },  
+  cafeAddress: {
+    fontSize: 14,
+    color: '#555',
+    marginBottom: 4,
+  },
+  cafeDescription: {
+    fontSize: 14,
+    color: '#333',
   },
   
 });

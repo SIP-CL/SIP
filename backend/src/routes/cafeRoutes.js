@@ -9,4 +9,7 @@ router.get('/name/:name', cafeController.getByName);
 // ✅ NEW: Search cafes by name (partial match)
 router.get('/search', cafeController.searchCafes);
 
+// ✅ NEW: Get cafes by ID
+router.get('/getByID/:cafeID', cafeController.getByID);
+
 module.exports = router;

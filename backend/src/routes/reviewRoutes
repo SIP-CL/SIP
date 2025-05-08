@@ -6,4 +6,6 @@ router.get('/getAll', reviewController.getAll);
 
 router.post('/postReview', reviewController.postReview);
 
+router.get('/getAllbyCafe/:cafeID', reviewController.getAllbyCafe);
+
 module.exports = router;

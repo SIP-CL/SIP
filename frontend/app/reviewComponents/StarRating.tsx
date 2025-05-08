@@ -6,14 +6,15 @@ import EmptyStar from '../../assets/images/empty_star.svg';
 
 type Props = {
     rating: number;
-    onPress: (rating: number) => void;
+    onPress?: (rating: number) => void;
     size?: number;
+    readOnly?: boolean;
 }
 
-const StarRating: React.FC<Props> = ({rating, onPress, size = 32}) => {
+const StarRating: React.FC<Props> = ({rating, onPress, size = 32, readOnly = false}) => {
     const handlePress = (starIndex: number, isHalf: boolean) => {
         const selectedRating = isHalf ? starIndex + 0.5 : starIndex + 1;
-        onPress(selectedRating);
+        onPress?.(selectedRating);
     };
 
     return (
@@ -31,14 +32,18 @@ const StarRating: React.FC<Props> = ({rating, onPress, size = 32}) => {
       
             return (
               <View key={starValue} style={[styles.starWrapper, { width: size, height: size }]}>
-                <Pressable
-                  style={styles.pressableHalfLeft}
-                  onPress={() => handlePress(i, true)}
-                />
-                <Pressable
-                  style={styles.pressableHalfRight}
-                  onPress={() => handlePress(i, false)}
-                />
+                {!readOnly && (
+                  <>
+                    <Pressable
+                    style={styles.pressableHalfLeft}
+                    onPress={() => handlePress(i, true)}
+                    />
+                  <Pressable
+                    style={styles.pressableHalfRight}
+                    onPress={() => handlePress(i, false)}
+                  />
+                  </>
+                )}
                 <View style={styles.starIcon}>{starIcon}</View>
               </View>
             );

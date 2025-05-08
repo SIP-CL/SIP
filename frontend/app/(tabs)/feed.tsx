@@ -22,7 +22,6 @@ export default function FeedScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
 
-
   useEffect(() => {
     fetch('http://localhost:3000/cafes/getAll')
       .then(res => res.json())

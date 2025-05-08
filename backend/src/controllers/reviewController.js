@@ -23,7 +23,7 @@ exports.postReview = async (req, res) => {
             postID,
             cafeID,
             caption: caption || '',
-            rating: Number(rating), // just in case it's a string
+            rating: Array.isArray(rating) ? rating.map(Number) : [], // ensures numeric values
             date: date ? new Date(date) : new Date()
         };
 

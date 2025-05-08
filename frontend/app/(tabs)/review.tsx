@@ -6,9 +6,41 @@ import ReviewForm from '../reviewComponents/ReviewForm';
 export default function CafeScreen() {
   const [showForm, setShowForm] = useState(false);
 
-  const submitReview = (overall: number, wifi: number, noise: number, comments: string) => {
-    Alert.alert('Thank you!', `Rating: ${overall}, Wifi: ${wifi}, Noise: ${noise}, Review: ${comments}`);
-    setShowForm(false); // Hide form again after submission
+  const submitReview = async (overall: number, wifi: number, noise: number, comments: string) => {
+    const reviewData = {
+      userID: 'user123', // Replace with actual user ID
+      postID: 'post123', // Replace with actual post ID
+      cafeID: 'cafe123', // Replace with actual cafe ID
+      caption: comments,
+      rating: [
+        overall, wifi, noise
+      ],
+      date: new Date().toISOString(),
+    };
+
+    console.log('Review Data:', reviewData);
+    console.log(JSON.stringify(reviewData));
+
+    try {
+      const response  = await fetch('http://localhost:3000/review/postReview', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reviewData),
+      })
+
+      if (response.ok) {
+        Alert.alert('Thank you! Your review has been submitted.');
+      } else {
+        Alert.alert('Error', 'There was a problem submitting your review. Please try again.');
+      }
+    } catch(error) {
+      console.error('Error submitting review:', error);
+      Alert.alert('Error', 'There was a problem submitting your review. Please try again.');
+    } finally {
+      setShowForm(false); // Hide form after submission
+    }
   };
 
   return (

@@ -14,6 +14,19 @@ exports.getAll = async (req, res) => {
     }
 }
 
+
+// Get all reviews by Cafe ID so once a user clicks on a cafe, they can see all the reviews for that cafe
+exports.getAllbyCafe = async (req, res) => {
+    try {
+        const { cafeID } = req.params;
+        const reviews = await reviewCollection.find({ cafeID }).toArray();
+        res.status(200).json(reviews);
+    } catch (error) {
+        console.error("Error fetching reviews by cafe:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
 exports.postReview = async (req, res) => {
     const { userID, postID, cafeID, caption, rating, date } = req.body;
 
@@ -23,7 +36,7 @@ exports.postReview = async (req, res) => {
             postID,
             cafeID,
             caption: caption || '',
-            rating: Number(rating), // just in case it's a string
+            rating: Array.isArray(rating) ? rating.map(Number) : [], // ensures numeric values
             date: date ? new Date(date) : new Date()
         };
 

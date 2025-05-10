@@ -1,10 +1,9 @@
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 require('dotenv').config();
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const app = require('./app');
 const connectToMongo = require('./config/db');
 const cafeController = require('./controllers/cafeController');
 const reviewController = require('./controllers/reviewController');
-
 
 const port = process.env.PORT || 3000;
 

@@ -5,8 +5,8 @@ import styles from '../feedComponents/styles';
 import CafeCollection from '../feedComponents/CafeCollection';
 import TopCafes from '../feedComponents/TopCafes';
 import Feather from '@expo/vector-icons/Feather';
-import { useRouter } from 'expo-router';
 import SearchBar from "../feedComponents/search";
+import ReviewScreen from "../reviewComponents/review";
 type Cafe = {
   _id: string;
   name: string;
@@ -19,8 +19,8 @@ type Cafe = {
 export default function FeedScreen() {
   const [cafes, setCafes] = useState<Cafe[]>([]);
   const [selectedDrink, setSelectedDrink] = useState("Coffee");
-  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCafeID, setSelectedCafeID] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('http://localhost:3000/cafes/getAll')
@@ -71,40 +71,44 @@ export default function FeedScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text style={styles.header}>Welcome</Text>
-        <Feather name="bell" size={20} color="black" />
-      </View>
+    selectedCafeID ? (
+      <ReviewScreen cafeID={selectedCafeID} goBack={() => setSelectedCafeID(null)} />
+    ) : (
+      <ScrollView style={styles.container}>
+        <View style={styles.headerRow}>
+          <Text style={styles.header}>Welcome</Text>
+          <Feather name="bell" size={20} color="black" />
+        </View>
 
-      <SearchBar query={searchQuery} setQuery={setSearchQuery} />
+        <SearchBar query={searchQuery} setQuery={setSearchQuery} />
 
-      <View style={styles.divider} />
-      <TrendingSection cafes={trendingCafes} />
-      <CafeCollection />
+        <View style={styles.divider} />
+        <TrendingSection cafes={trendingCafes} onCafeSelect={setSelectedCafeID} />
+        <CafeCollection />
 
-      <Text style={styles.sectionHeader}>Top Cafes by Drinks</Text>
-      <View style={styles.tabHeader}>
-        {drinkTabs.map(drink => (
-          <TouchableOpacity
-            key={drink}
-            style={[
-              styles.tab,
-              selectedDrink === drink && { borderBottomColor: 'black', borderBottomWidth: 2 }
-            ]}
-            onPress={() => setSelectedDrink(drink)}
-          >
-            <Text style={{ fontWeight: selectedDrink === drink ? 'bold' : 'normal' }}>
-              {drink}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+        <Text style={styles.sectionHeader}>Top Cafes by Drinks</Text>
+        <View style={styles.tabHeader}>
+          {drinkTabs.map(drink => (
+            <TouchableOpacity
+              key={drink}
+              style={[
+                styles.tab,
+                selectedDrink === drink && { borderBottomColor: 'black', borderBottomWidth: 2 }
+              ]}
+              onPress={() => setSelectedDrink(drink)}
+            >
+              <Text style={{ fontWeight: selectedDrink === drink ? 'bold' : 'normal' }}>
+                {drink}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      <TopCafes
-        category={selectedDrink}
-        cafes={getCafesForDrink(selectedDrink)}
-      />
-    </ScrollView>
+        <TopCafes
+          cafes={getCafesForDrink(selectedDrink)}
+          onCafeSelect={setSelectedCafeID}
+        />
+      </ScrollView>
+    )
   );
 }

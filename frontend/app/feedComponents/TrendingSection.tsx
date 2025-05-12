@@ -21,10 +21,8 @@ export default function TrendingSection({ cafes, onCafeSelect }: Props) {
           >
             <Text style={styles.cafeName}>{cafe.name}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                <Entypo name="star-outlined" size={15} color="black" style={{ marginRight: 4 }} />
-                <Text>{cafe.rating} ({cafe.numReviews})</Text>
-              </View>
+              <Entypo name="star-outlined" size={15} color="black" style={{ marginRight: 4 }} />
+              <Text>{cafe.rating} ({cafe.numReviews})</Text>
             </View>
           </TouchableOpacity>
         ))}

@@ -12,7 +12,7 @@ export default function TopCafesByDrinks({ cafes, onCafeSelect }: Props) {
   return (
     
     <View>
-      {cafes.slice(0, 3).map((cafe, index) => (
+      {cafes.slice(0, 5).map((cafe, index) => (
         <TouchableOpacity
           key={cafe._id}
           style={styles.rankCard}

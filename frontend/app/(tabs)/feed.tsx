@@ -70,45 +70,47 @@ export default function FeedScreen() {
     }
   };
 
+  if (selectedCafeID) {
+    return <ReviewScreen cafeID={selectedCafeID} goBack={() => setSelectedCafeID(null)} />
+  }
+
   return (
-    selectedCafeID ? (
-      <ReviewScreen cafeID={selectedCafeID} goBack={() => setSelectedCafeID(null)} />
-    ) : (
-      <ScrollView style={styles.container}>
-        <View style={styles.headerRow}>
-          <Text style={styles.header}>Welcome</Text>
-          <Feather name="bell" size={20} color="black" />
-        </View>
+    <ScrollView style={styles.container}>
+      <View style={styles.headerRow}>
+        <Text style={styles.header}>Welcome</Text>
+        <Feather name="bell" size={20} color="black" />
+      </View>
 
-        <SearchBar query={searchQuery} setQuery={setSearchQuery} />
+      <SearchBar query={searchQuery} setQuery={setSearchQuery} />
 
-        <View style={styles.divider} />
-        <TrendingSection cafes={trendingCafes} onCafeSelect={setSelectedCafeID} />
-        <CafeCollection />
+      <View style={styles.divider} />
 
-        <Text style={styles.sectionHeader}>Top Cafes by Drinks</Text>
-        <View style={styles.tabHeader}>
-          {drinkTabs.map(drink => (
-            <TouchableOpacity
-              key={drink}
-              style={[
-                styles.tab,
-                selectedDrink === drink && { borderBottomColor: 'black', borderBottomWidth: 2 }
-              ]}
-              onPress={() => setSelectedDrink(drink)}
-            >
-              <Text style={{ fontWeight: selectedDrink === drink ? 'bold' : 'normal' }}>
-                {drink}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+      <TrendingSection cafes={trendingCafes} onCafeSelect={setSelectedCafeID} />
 
-        <TopCafes
-          cafes={getCafesForDrink(selectedDrink)}
-          onCafeSelect={setSelectedCafeID}
-        />
-      </ScrollView>
-    )
+      <CafeCollection />
+
+      <Text style={styles.sectionHeader}>Top Cafes by Drinks</Text>
+      <View style={styles.tabHeader}>
+        {drinkTabs.map(drink => (
+          <TouchableOpacity
+            key={drink}
+            style={[
+              styles.tab,
+              selectedDrink === drink && { borderBottomColor: 'black', borderBottomWidth: 2 }
+            ]}
+            onPress={() => setSelectedDrink(drink)}
+          >
+            <Text style={{ fontWeight: selectedDrink === drink ? 'bold' : 'normal' }}>
+              {drink}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <TopCafes
+        cafes={getCafesForDrink(selectedDrink)}
+        onCafeSelect={setSelectedCafeID}
+      />
+    </ScrollView>
   );
 }

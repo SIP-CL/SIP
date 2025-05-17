@@ -5,8 +5,8 @@ import styles from '../feedComponents/styles';
 import CafeCollection from '../feedComponents/CafeCollection';
 import TopCafes from '../feedComponents/TopCafes';
 import Feather from '@expo/vector-icons/Feather';
-import { useRouter } from 'expo-router';
 import SearchBar from "../feedComponents/search";
+import ReviewScreen from "../reviewComponents/review";
 type Cafe = {
   _id: string;
   name: string;
@@ -19,8 +19,8 @@ type Cafe = {
 export default function FeedScreen() {
   const [cafes, setCafes] = useState<Cafe[]>([]);
   const [selectedDrink, setSelectedDrink] = useState("Coffee");
-  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCafeID, setSelectedCafeID] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('http://localhost:3000/cafes/getAll')
@@ -70,6 +70,10 @@ export default function FeedScreen() {
     }
   };
 
+  if (selectedCafeID) {
+    return <ReviewScreen cafeID={selectedCafeID} goBack={() => setSelectedCafeID(null)} />
+  }
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.headerRow}>
@@ -80,7 +84,9 @@ export default function FeedScreen() {
       <SearchBar query={searchQuery} setQuery={setSearchQuery} />
 
       <View style={styles.divider} />
-      <TrendingSection cafes={trendingCafes} />
+
+      <TrendingSection cafes={trendingCafes} onCafeSelect={setSelectedCafeID} />
+
       <CafeCollection />
 
       <Text style={styles.sectionHeader}>Top Cafes by Drinks</Text>
@@ -102,8 +108,8 @@ export default function FeedScreen() {
       </View>
 
       <TopCafes
-        category={selectedDrink}
         cafes={getCafesForDrink(selectedDrink)}
+        onCafeSelect={setSelectedCafeID}
       />
     </ScrollView>
   );

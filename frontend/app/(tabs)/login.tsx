@@ -1,71 +1,65 @@
-import {useState} from 'react';
-import { Text, View, TextInput, Button, StyleSheet } from "react-native";
+import { useState } from 'react';
+import { Text, View, TextInput, TouchableOpacity, Pressable } from 'react-native';
 import { auth } from '../../firebase/firebaseConfig';
-import { signInWithEmailAndPassword } from 'firebase/auth'
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useRouter } from 'expo-router';
+import styles1 from '../loginComponents/stylesLogin'; // shared styles
 
+export default function LoginScreen() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const router = useRouter();
 
+  const handleLogin = async () => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('logged in as:', userCredential.user.email);
+      router.push('/home'); // change to your actual route
+    } catch (error: any) {
+      setErrorMsg(error.message);
+    }
+  };
 
-export default function FeedScreen() {
- const [email, setEmail] = useState('')
- const [password, setPassword] = useState('');
- const [errorMsg, setErrorMsg] = useState('');
+  return (
+    <View style={styles1.container}>
+      <Text style={[styles1.header, { marginBottom: 12 }]}>Login</Text>
 
+      <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 24 }}>
+        <Text style={{ color: '#666' }}>Haven’t joined? </Text>
+        <Pressable onPress={() => router.push('/signup')}>
+          <Text style={{ color: '#000', fontWeight: 'bold', textDecorationLine: 'underline' }}>
+            Sign up here
+          </Text>
+        </Pressable>
+      </View>
 
-const handleLogin = async () => {
- try {
-   const userCredential = await signInWithEmailAndPassword(auth, email, password);
-   console.log('logged in as:', userCredential.user.email);
- } catch (error: any) {
-   setErrorMsg(error.message);
- }
-};
+      <View style={styles1.inputBox}>
+  <TextInput
+    placeholder="Email"
+    placeholderTextColor="#999"
+    value={email}
+    onChangeText={setEmail}
+    autoCapitalize="none"
+    style={styles1.inputText}
+  />
+</View>
 
+<View style={styles1.inputBox}>
+  <TextInput
+    placeholder="Password"
+    placeholderTextColor="#999"
+    value={password}
+    onChangeText={setPassword}
+    secureTextEntry
+    style={styles1.inputText}
+  />
+</View>
+      {errorMsg ? <Text style={styles1.error}>{errorMsg}</Text> : null}
 
-return (
- <View style={styles.container}>
-   <TextInput
-     placeholder="Email"
-     value={email}
-     onChangeText={setEmail}
-     autoCapitalize="none"
-     style={styles.input}
-   />
-   <TextInput
-     placeholder="Password"
-     value={password}
-     onChangeText={setPassword}
-     secureTextEntry
-     style={styles.input}
-   />
-   {errorMsg ? <Text style={styles.error}>{errorMsg}</Text> : null}
-   <Button title="Login" onPress={handleLogin} />
- </View>
-);
+      <TouchableOpacity onPress={handleLogin} style={styles1.loginButton}>
+        <Text style={styles1.loginButtonText}>Log In</Text>
+      </TouchableOpacity>
+    </View>
+  );
 }
-
-
-const styles = StyleSheet.create({
-container: {
- flex: 1,
- justifyContent: 'center',
- paddingHorizontal: 30,
-},
-input: {
- borderBottomWidth: 1,
- marginBottom: 16,
- padding: 8,
-},
-error: {
- color: 'red',
- marginBottom: 10,
-},
-
-link: {
-  marginTop: 16,
-  color: 'blue',
-  textAlign: 'center',
-},
-
-});
-
-

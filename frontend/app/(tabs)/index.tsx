@@ -1,30 +1,6 @@
-import { StyleSheet } from "react-native";
+// app/index.tsx
+import { Redirect } from 'expo-router';
 
-import EditScreenInfo from "@/components/EditScreenInfo";
-import { Text, View } from "@/components/Themed";
-import ReviewScreen from "./review";
-
-export default function TabOneScreen() {
-  return (
-    <View style={styles.container}>
-      <ReviewScreen />
-    </View>
-  );
+export default function Index() {
+  return <Redirect href="/login" />; // or "/listings" or any valid tab/screen
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: "80%",
-  },
-});

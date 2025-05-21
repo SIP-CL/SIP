@@ -3,7 +3,8 @@ import { View, ScrollView, Alert, Pressable, Text, StyleSheet, ActivityIndicator
 import ReviewForm from '../reviewComponents/ReviewForm';
 import StarRating from '../reviewComponents/StarRating';
 
-const cafeID = '6816ade15f1c0be8e99a42f2';
+import { AntDesign } from '@expo/vector-icons'; // or any icon set you prefer
+
 
 const getRelativeTime = (dateString: string) => {
   const now = new Date();
@@ -28,7 +29,7 @@ const getRelativeTime = (dateString: string) => {
   return 'Just now';
 };
 
-export default function CafeScreen() {
+const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }) => {
   const [showForm, setShowForm] = useState(false);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -109,10 +110,23 @@ export default function CafeScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {/* <Pressable onPress={goBack} style={styles.backButton}>
+        <AntDesign name="arrowleft" size={24} color="#000" />
+      </Pressable> */}
+
       {cafe && (
         <View style={styles.cafeInfo}>
           <View style={styles.cafeHeaderRow}>
-            <Text style={styles.cafeName}>{cafe.name}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              { !showForm && (
+                <Pressable onPress={goBack} style={{ marginRight: 8 }}>
+                  <AntDesign name="arrowleft" size={24} color="#000" />
+                </Pressable>
+              )}
+              <Text style={styles.cafeName}>{cafe.name}</Text> 
+            </View>
+          </View>
+          <View style={styles.rating}>
             <StarRating rating={parseFloat(cafe.rating) || 0} size={20} readOnly />
           </View>
           <Text style={styles.cafeAddress}>{cafe.address}</Text>
@@ -241,20 +255,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between', // or 'flex-start' if you prefer
     marginBottom: 4,
+    
   },
   cafeName: {
     fontSize: 20,
     fontWeight: 'bold',
     marginRight: 10,
+    marginBottom: 8,
   },  
   cafeAddress: {
     fontSize: 14,
     color: '#555',
+    marginTop: 8,
     marginBottom: 4,
   },
   cafeDescription: {
     fontSize: 14,
     color: '#333',
   },
-  
+  backButton: {
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+  },
+  rating: {
+    alignItems: 'flex-start',
+  }
 });
+
+export default ReviewScreen;

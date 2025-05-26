@@ -1,5 +1,5 @@
 import react, { useEffect, useState } from 'react';
-import { View, ScrollView, Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { SafeAreaView, View, ScrollView, Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import ReviewScreen from '../reviewComponents/review';
 import StarRating from '../reviewComponents/StarRating';
 
@@ -32,6 +32,7 @@ const CafeScreen: FC = () => {
       
 
     return (
+      <SafeAreaView>
         <ScrollView contentContainerStyle={styles.container}> 
             {loading ? (
                 <ActivityIndicator />
@@ -49,6 +50,7 @@ const CafeScreen: FC = () => {
                 ))
             )}  
         </ScrollView>
+      </SafeAreaView>
     )
 
 }

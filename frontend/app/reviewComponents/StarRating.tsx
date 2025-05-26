@@ -1,7 +1,6 @@
 import react from 'react';
 import {View, Pressable, StyleSheet} from 'react-native';
 import FilledStar from '../../assets/images/filled_star.svg';
-import HalfStar from '../../assets/images/half_filled_star.svg';
 import EmptyStar from '../../assets/images/empty_star.svg';
 
 type Props = {
@@ -10,6 +9,25 @@ type Props = {
     size?: number;
     readOnly?: boolean;
 }
+
+const HalfStarComposite: React.FC<{ size: number }> = ({ size }) => {
+  return (
+    <View style={{ width: size, height: size }}>
+      <EmptyStar width={size} height={size} stroke="#000" strokeWidth={1} color="#3C751E" />
+      <View
+        style={{
+          position: 'absolute',
+          width: size / 2,
+          height: size,
+          overflow: 'hidden',
+        }}
+      >
+        <FilledStar width={size} height={size} stroke="#000" strokeWidth={1} color="#3C751E" />
+      </View>
+    </View>
+  );
+};
+
 
 const StarRating: React.FC<Props> = ({rating, onPress, size = 32, readOnly = false}) => {
     const handlePress = (starIndex: number, isHalf: boolean) => {
@@ -23,13 +41,12 @@ const StarRating: React.FC<Props> = ({rating, onPress, size = 32, readOnly = fal
             const starValue = i + 1;
             let starIcon;
             if (rating >= starValue) {
-              starIcon = <FilledStar width={size} height={size} color = '#A9A9A9' />;
+              starIcon = <FilledStar width={size} height={size} stroke="#000" strokeWidth={1} color="#3C751E" />;
             } else if (rating >= starValue - 0.5) {
-              starIcon = <HalfStar width={size} height={size} color = '#A9A9A9'/>;
+              starIcon = <HalfStarComposite size={size} />;
             } else {
-              starIcon = <EmptyStar width={size} height={size} color = '#A9A9A9'/>;
+              starIcon = <EmptyStar width={size} height={size} stroke="#000" strokeWidth={1} color="#3C751E" />;
             }
-      
             return (
               <View key={starValue} style={[styles.starWrapper, { width: size, height: size }]}>
                 {!readOnly && (

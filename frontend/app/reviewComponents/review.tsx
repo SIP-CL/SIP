@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, Alert, Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  SafeAreaView,
+  View,
+  ScrollView,
+  Alert,
+  Pressable,
+  Text,
+  StyleSheet,
+  ActivityIndicator
+} from 'react-native';
 import ReviewForm from '../reviewComponents/ReviewForm';
 import StarRating from '../reviewComponents/StarRating';
-
-import { AntDesign } from '@expo/vector-icons'; // or any icon set you prefer
-
+import { AntDesign } from '@expo/vector-icons';
 
 const getRelativeTime = (dateString: string) => {
   const now = new Date();
@@ -40,17 +47,13 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
     try {
       const response = await fetch(`http://localhost:3000/cafes/getByID/${cafeID}`);
       const data = await response.json();
-      console.log('Cafe data:', data);
       setCafe(data);
     } catch (error) {
       console.error('Error fetching cafe info:', error);
       Alert.alert('Error', 'There was a problem fetching cafe information.');
     }
-  }
+  };
 
-  useEffect(() => {
-    fetchCafeInfo();
-  }, []);
   const fetchReviews = async () => {
     setLoading(true);
     try {
@@ -66,6 +69,7 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
   };
 
   useEffect(() => {
+    fetchCafeInfo();
     fetchReviews();
   }, []);
 
@@ -108,34 +112,36 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
     });
   };
 
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* <Pressable onPress={goBack} style={styles.backButton}>
-        <AntDesign name="arrowleft" size={24} color="#000" />
-      </Pressable> */}
+  if (showForm) {
+    return (
+      <View style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.container}>
+          <ReviewForm onSubmit={submitReview} onCancel={() => setShowForm(false)} cafeName = {cafe.name} />
+        </ScrollView>
+      </View>
+    );
+  }
 
-      {cafe && (
-        <View style={styles.cafeInfo}>
-          <View style={styles.cafeHeaderRow}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              { !showForm && (
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={styles.container}>
+        {cafe && (
+          <View style={styles.cafeInfo}>
+            <View style={styles.cafeHeaderRow}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Pressable onPress={goBack} style={{ marginRight: 8 }}>
                   <AntDesign name="arrowleft" size={24} color="#000" />
                 </Pressable>
-              )}
-              <Text style={styles.cafeName}>{cafe.name}</Text> 
+                <Text style={styles.cafeName}>{cafe.name}</Text>
+              </View>
             </View>
+            <View style={styles.rating}>
+              <StarRating rating={parseFloat(cafe.rating) || 0} size={20} readOnly />
+            </View>
+            <Text style={styles.cafeAddress}>{cafe.address}</Text>
           </View>
-          <View style={styles.rating}>
-            <StarRating rating={parseFloat(cafe.rating) || 0} size={20} readOnly />
-          </View>
-          <Text style={styles.cafeAddress}>{cafe.address}</Text>
-        </View>
-      )}
+        )}
 
-      {showForm ? (
-        <ReviewForm onSubmit={submitReview} onCancel={() => setShowForm(false)} />
-      ) : (
         <View style={{ width: '100%' }}>
           <Pressable onPress={() => setShowForm(true)} style={styles.button}>
             <Text style={styles.buttonText}>Leave a Review</Text>
@@ -163,7 +169,7 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
                     </Text>
 
                     {isExpanded && (
-                      <View style = {styles.expandedContent}>
+                      <View style={styles.expandedContent}>
                         <View style={styles.headerRow}>
                           <Text style={styles.reviewUser}>Wifi:</Text>
                           <StarRating rating={review.rating?.[1] || 0} size={20} readOnly />
@@ -175,22 +181,22 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
                         </View>
 
                         <Text style={styles.date}>{getRelativeTime(review.date)}</Text>
-                    </View>
+                      </View>
                     )}
                   </Pressable>
                 );
               })
           )}
         </View>
-      )}
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    alignItems: 'center',
+    // alignItems: 'center',
     padding: 20,
   },
   button: {
@@ -237,11 +243,11 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between', // or 'flex-start' if you want them tightly packed
+    justifyContent: 'space-between',
     marginBottom: 6,
   },
   expandedContent: {
-    paddingTop: 10, // 👈 increase this value as needed
+    paddingTop: 10,
   },
   cafeInfo: {
     marginBottom: 20,
@@ -253,16 +259,15 @@ const styles = StyleSheet.create({
   cafeHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between', // or 'flex-start' if you prefer
+    justifyContent: 'space-between',
     marginBottom: 4,
-    
   },
   cafeName: {
     fontSize: 20,
     fontWeight: 'bold',
     marginRight: 10,
     marginBottom: 8,
-  },  
+  },
   cafeAddress: {
     fontSize: 14,
     color: '#555',

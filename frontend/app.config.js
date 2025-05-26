@@ -34,12 +34,12 @@ export default {
       typedRoutes: true
     },
     extra: {
-      firebaseApiKey: process.env.EXPO_FIREBASE_API_KEY,
-      firebaseAuthDomain: process.env.EXPO_FIREBASE_AUTH_DOMAIN,
-      firebaseProjectId: process.env.EXPO_FIREBASE_PROJECT_ID,
-      firebaseStorageBucket: process.env.EXPO_FIREBASE_STORAGE_BUCKET,
-      firebaseMessagingSenderId: process.env.EXPO_FIREBASE_MESSAGING_SENDER_ID,
-      firebaseAppId: process.env.EXPO_FIREBASE_APP_ID
+      firebaseApiKey: "AIzaSyDab5hMh4fVNF3if_EZTO6trWx_5k_qRxQ",
+      firebaseAuthDomain: "sip-cl-37c93.firebaseapp.com",
+      firebaseProjectId: "sip-cl-37c93",
+      firebaseStorageBucket: "sip-cl-37c93.appspot.com",
+      firebaseMessagingSenderId: "868336523690",
+      firebaseAppId: "1:868336523690:ios:8ffe2dff10f2a1614133d3"
     }
   }
 };

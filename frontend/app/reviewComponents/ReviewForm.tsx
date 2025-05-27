@@ -8,33 +8,87 @@ import RatingSlider from './drinkRatingSlider'
 
 
 type Props = {
-  onSubmit: (overall: number, wifi: number, noise: number, comments: string) => void;
+  onSubmit: (
+    overall: number,
+    drinkQuality: number,
+    vibe: number,
+    ammenities: number,
+    cafeComments: string,
+    selectedLabels: string[],
+    drinkReccomendations: string,
+    coffee: number,
+    matcha: number,
+    tea: number,
+    specialty: number
+  ) => void;
   onCancel: () => void;
   cafeName: string;
 };
 
 const ReviewForm: React.FC<Props> = ({ onSubmit, onCancel, cafeName }) => {
   const [overall, setOverall] = useState<number>(0);
-  const [wifi, setWifi] = useState<number>(0);
-  const [noise, setNoise] = useState<number>(0);
-  const [comments, setComments] = useState<string>('');
+  const [drinkQuality, setDrinkQuality] = useState<number>(0);
+  const [vibe, setVibe] = useState<number>(0);
+  const [ammenities, setAmmenities] = useState<number>(0);
+  
+  const [cafeComments, setCafeComments] = useState<string>('');
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
+  const [drinkReccomendations, setDrinkReccomendations] = useState<string>('');
 
-  const [coffee, setCoffee] = useState<number>(1);
-  const [matcha, setMatcha] = useState<number>(1);
-  const [tea, setTea] = useState<number>(1);
-  const [specialty, setSpecialty] = useState<number>(1);
+  const [coffee, setCoffee] = useState<number>(0);
+  const [matcha, setMatcha] = useState<number>(0);
+  const [tea, setTea] = useState<number>(0);
+  const [specialty, setSpecialty] = useState<number>(0);
+
+  const handleCoffeeChange = (value: number) => {
+    if (coffee === 0) setCoffee(value); // first interaction
+    else setCoffee(value);
+  };
+
+  const handleMatchaChange = (value: number) => {
+    if (matcha === 0) setMatcha(value); // first interaction
+    else setMatcha(value);
+  };
+
+  const handleTeaChange = (value: number) => {
+    if (tea === 0) setTea(value); // first interaction
+    else setTea(value);
+  };
+
+  const handleSpecialtyChange = (value: number) => {
+    if (specialty === 0) setSpecialty(value); // first interaction
+    else setSpecialty(value);
+  };  
 
   const handleSubmit = () => {
     if (overall === 0) {
       alert('Please select a rating');
       return;
     }
-    onSubmit(overall, wifi, noise, comments);
+    onSubmit(
+      overall,
+      drinkQuality,
+      vibe,
+      ammenities,
+      cafeComments || '',
+      selectedLabels,
+      drinkReccomendations || '',
+      coffee,
+      matcha,
+      tea,
+      specialty
+    );
     setOverall(0);
-    setWifi(0);
-    setNoise(0);
-    setComments('');
+    setDrinkQuality(0);
+    setVibe(0); 
+    setAmmenities(0);
+    setCafeComments('');
+    setSelectedLabels([]);
+    setDrinkReccomendations('');
+    setCoffee(1);
+    setMatcha(1);
+    setTea(1);
+    setSpecialty(1);
   };
 
   const goodLabels = [
@@ -80,7 +134,6 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, onCancel, cafeName }) => {
         <View style={localStyles.cafeHeader}>
           <Text style={localStyles.cafeNameText}>{cafeName}</Text>
           <View style={localStyles.separator} />
-
         </View>
         <View style={localStyles.header}>
           <Text style={localStyles.headerText}>Rate your overall experience.</Text>
@@ -94,25 +147,25 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, onCancel, cafeName }) => {
           style={localStyles.commentInput}
           placeholder= {`Tell use what you thought about ${cafeName}`}
           multiline
-          value={comments}
-          onChangeText={setComments}
+          value={cafeComments}
+          onChangeText={setCafeComments}
         />
 
         <View style={localStyles.separator} />
 
         <View style={localStyles.ratingRow}>
           <Text style={localStyles.inlineLabel}>Drink Quality</Text>
-          <StarRating rating={wifi} onPress={setWifi} />
+          <StarRating rating={drinkQuality} onPress={setDrinkQuality} />
         </View>
 
         <View style={localStyles.ratingRow}>
           <Text style={localStyles.inlineLabel}>Vibe</Text>
-          <StarRating rating={noise} onPress={setNoise} />
+          <StarRating rating={vibe} onPress={setVibe} />
         </View>
 
         <View style={localStyles.ratingRow}>
           <Text style={localStyles.inlineLabel}>Ammenities</Text>
-          <StarRating rating={noise} onPress={setNoise} />
+          <StarRating rating={ammenities} onPress={setAmmenities} />
         </View>
 
         <View style={localStyles.separator} />
@@ -164,8 +217,8 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, onCancel, cafeName }) => {
           style={[localStyles.commentInput, localStyles.drinkInput]}
           placeholder= {`ie: Vanilla Latte`}
           multiline
-          value={comments}
-          onChangeText={setComments}
+          value={drinkReccomendations}
+          onChangeText={setDrinkReccomendations}
         />
 
         <View style={localStyles.separator} />
@@ -176,22 +229,22 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, onCancel, cafeName }) => {
 
         <View style={localStyles.ratingRow}>
           <Text style={localStyles.inlineLabel}>Coffee</Text>
-          <RatingSlider value={coffee} onChange={setCoffee} />
+          <RatingSlider value={coffee === 0 ? 1: coffee} onChange={handleCoffeeChange} />
         </View>
         
         <View style={localStyles.ratingRow}>
           <Text style={localStyles.inlineLabel}>Matcha</Text>
-          <RatingSlider value={matcha} onChange={setMatcha} />
+          <RatingSlider value={matcha === 0 ? 1 : matcha} onChange={handleMatchaChange} />
         </View>
 
         <View style={localStyles.ratingRow}>
           <Text style={localStyles.inlineLabel}>Tea</Text>
-          <RatingSlider value={tea} onChange={setTea} />
+          <RatingSlider value={tea === 0 ? 1: tea} onChange={handleTeaChange} />
         </View>
 
         <View style={localStyles.ratingRow}>
           <Text style={localStyles.inlineLabel}>Specialty</Text>
-          <RatingSlider value={specialty} onChange={setSpecialty} />
+          <RatingSlider value={specialty === 0 ? 1: specialty} onChange={handleSpecialtyChange} />
         </View>
 
         <Pressable onPress={handleSubmit} style={localStyles.button}>

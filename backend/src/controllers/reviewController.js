@@ -1,8 +1,16 @@
+const { ObjectId } = require('mongodb');
+
 let reviewCollection;
   
 exports.setReviewCollection = (db) => {
     reviewCollection = db.collection("reviews");
   }
+
+let cafesCollection;
+
+exports.setCafeCollection = (db) => {
+  cafesCollection = db.collection("cafes")
+}
 
 exports.getAll = async (req, res) => {
     try {
@@ -13,7 +21,6 @@ exports.getAll = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 }
-
 
 // Get all reviews by Cafe ID so once a user clicks on a cafe, they can see all the reviews for that cafe
 exports.getAllbyCafe = async (req, res) => {
@@ -113,11 +120,77 @@ exports.postReview = async (req, res) => {
   
       const result = await reviewCollection.insertOne(newReview);
       const inserted = await reviewCollection.findOne({ _id: result.insertedId });
-  
+
+      // Edit the cafe ratings
+      // Update ratings
+      const updateRatingField = async (cafeID, fieldPath, newRating) => {
+        const cafe = await cafesCollection.findOne({ _id: new ObjectId(cafeID) });
+        if (!cafe) return;
+
+        if (Number(newRating) === 0) return
+
+        const currentRating = cafe.ratings?.[fieldPath]
+        const updatedCount = currentRating.count + 1
+        const updatedRating = ((currentRating.rating * currentRating.count + newRating) / updatedCount)
+
+
+        await cafesCollection.updateOne(
+          // Query
+          {_id: new ObjectId(cafeID)},
+          // Set
+          { $set: {
+            [`ratings.${fieldPath}.rating`]: updatedRating,
+            [`ratings.${fieldPath}.count`]: updatedCount
+          }}
+        )
+      }
+
+      // Update labels
+      const incrementLabelCounts = async (cafeID, goodLabels, badLabels) => {
+        const cafe = await cafesCollection.findOne({ _id: new ObjectId(cafeID) });
+        if (!cafe) return;
+
+        const updates = {}
+
+        for (const label of goodLabels) {
+          updates[`labels.good.${label}`] = 1
+        }
+
+        for (const label of badLabels) {
+          updates[`labels.bad.${label}`] = 1
+        }
+
+        await cafesCollection.updateOne(
+          // Query
+          {_id: new ObjectId(cafeID)},
+          { $inc: updates }
+        )
+      }
+
+      // Update overall
+      await updateRatingField(cafeID, "overall", Number(overall))
+      // Update drinkQuality
+      await updateRatingField(cafeID, "drinkQuality", Number(drinkQuality))
+      // Update vibe
+      await updateRatingField(cafeID, "vibe", Number(vibe))
+      // Update ammenities
+      await updateRatingField(cafeID, "ammenities", Number(ammenities))
+      // Update coffee
+      await updateRatingField(cafeID, "coffee", Number(coffee))
+      // Update matcha
+      await updateRatingField(cafeID, "matcha", Number(matcha))
+      // Update tea
+      await updateRatingField(cafeID, "tea", Number(tea))     
+      // Update specialty
+      await updateRatingField(cafeID, "specialty", Number(specialty))
+
+
+      // Update labels
+      await incrementLabelCounts(cafeID, good, bad)
+
       res.status(201).json(inserted);
     } catch (error) {
       console.error("Error posting review:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   };
-  

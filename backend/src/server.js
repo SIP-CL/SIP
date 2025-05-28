@@ -11,6 +11,7 @@ const port = process.env.PORT || 3000;
   const db = await connectToMongo();
   cafeController.setCafeCollection(db); // Make cafesCollection available
   reviewController.setReviewCollection(db); // Make reviewsCollection available
+  reviewController.setCafeCollection(db);
   app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
   });

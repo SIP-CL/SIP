@@ -17,6 +17,7 @@ import TabSelector from './TabSelector';
 import { auth } from '../../firebase/firebaseConfig'
 import { onAuthStateChanged } from 'firebase/auth';
 import { on } from 'events';
+import Labels from './labels';
 
 
 const getRelativeTime = (dateString: string) => {
@@ -45,6 +46,8 @@ const getRelativeTime = (dateString: string) => {
 const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }) => {
   const [showForm, setShowForm] = useState(false);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [goodLabels, setGoodLabels] = useState<Record<string, number>>({});
+  const [badLabels, setBadLabels] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
   const [cafe, setCafe] = useState<any>(null);
@@ -53,7 +56,7 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        setUser({email: user.email, uid: user.uid, displayName: user.displayName, photoURL: user.photoURL});
+        setUser({ email: user.email, uid: user.uid, displayName: user.displayName, photoURL: user.photoURL });
       } else {
         setUser({ email: null, uid: null, displayName: null, photoURL: null });
       }
@@ -91,9 +94,62 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
     }
   };
 
+  interface LabelEntry {
+    count: number
+  }
+
+  const fetchLabels = async () => {
+    const [goodLabels, badLabels] = await Promise.all([
+      fetch(`http://localhost:3000/cafes/getGoodLabelsByID/${cafeID}`),
+      fetch(`http://localhost:3000/cafes/getBadLabelsByID/${cafeID}`)
+    ])
+
+    const goodData: Record<string, number> = await goodLabels.json();
+    const badData: Record<string, number> = await badLabels.json();
+
+    const filteredGood: Record<string, number> = {};
+    const filteredBad: Record<string, number> = {};
+
+    for (const [key, value] of Object.entries(goodData)) {
+      if (value > 0) {
+        filteredGood[key] = value
+      }
+    }
+
+    for (const [key, value] of Object.entries(badData)) {
+      if (value > 0) {
+        filteredBad[key] = value
+      }
+    }
+
+    const labelPairs: [string, string][] = [
+      ["Good Music", "Loud Music"],
+      ["Comfy Seats", "Bad Seating"],
+      ["Free Wifi", "No Wifi"],
+      ["Outlets", "No Outlets"],
+      ["Good Service", "Bad Service"]
+    ];
+
+    for (const [goodLabel, badLabel] of labelPairs) {
+      const goodCount = filteredGood[goodLabel] || 0
+      const badCount = filteredBad[badLabel] || 0
+
+      if (badCount > goodCount) {
+        delete filteredGood[goodLabel]
+      } else {
+        delete filteredBad[badLabel]
+      }
+    }
+
+    setGoodLabels(filteredGood)
+    setBadLabels(filteredBad)
+  }
+
+
   useEffect(() => {
     fetchCafeInfo();
     fetchReviews();
+    fetchLabels();
   }, []);
 
   const submitReview = async (
@@ -224,10 +280,24 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
               )}
             </View>
             <View style={styles.reviewContentBox}>
-              {/* <View style={styles.cafeInfo}>
-              <Text style={styles.label}>Description:</Text>
-              <Text style={styles.cafeDescription}>{cafe.description}</Text>
-            </View> */}
+              {
+                <View>
+                  <Text style={styles.label}>Ammenities</Text>
+                  <View style={styles.labelRow}>
+                    {[
+                      ...Object.keys(goodLabels).map((label) => ({ label, color: '#3C751E' })),
+                      ...Object.keys(badLabels).map((label) => ({ label, color: '#E6725A' }))
+                    ].map(({ label, color }) => (
+                      <Labels
+                        key={label}
+                        label={label}
+                        color={color}
+                      />
+                    ))}
+                  </View>
+
+                </View>
+              }
             </View>
           </View>
         )}
@@ -598,6 +668,12 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     // borderRadius: 8,
     padding: 16,
+  },
+  labelRow: {
+    paddingTop: 8,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
   },
 });
 

@@ -52,7 +52,6 @@ exports.searchCafes = async (req, res) => {
   }
 };
 
-
 exports.getByID = async (req, res) => {
   const cafeID = req.params.cafeID;
 
@@ -67,5 +66,41 @@ exports.getByID = async (req, res) => {
   } catch (err) {
     console.error("Failed to fetch cafe by ID:", err);
     res.status(500).send("Server error");
+  }
+}
+
+exports.getGoodLabelsByID = async(req, res) => {
+  const cafeID = req.params.cafeID;
+
+  try {
+    const cafe = await cafesCollection.findOne({ _id: new ObjectId(cafeID)});
+
+    if (!cafe) {
+      return res.status(404).send("Cafe not found");
+    }
+
+    res.json(cafe.labels.good)
+  }
+  catch (err) {
+    console.error("Failed to retrieve ratings of cafe by ID: ", err);
+    res.status(500).send("Server error")
+  }
+}
+
+exports.getBadLabelsByID = async(req, res) => {
+  const cafeID = req.params.cafeID;
+
+  try {
+    const cafe = await cafesCollection.findOne({ _id: new ObjectId(cafeID)});
+
+    if (!cafe) {
+      return res.status(404).send("Cafe not found");
+    }
+
+    res.json(cafe.labels.bad)
+  }
+  catch (err) {
+    console.error("Failed to retrieve ratings of cafe by ID: ", err);
+    res.status(500).send("Server error")
   }
 }

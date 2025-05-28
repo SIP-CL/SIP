@@ -12,4 +12,8 @@ router.get('/search', cafeController.searchCafes);
 // ✅ NEW: Get cafes by ID
 router.get('/getByID/:cafeID', cafeController.getByID);
 
+router.get('/getGoodLabelsByID/:cafeID', cafeController.getGoodLabelsByID)
+
+router.get('/getBadLabelsByID/:cafeID', cafeController.getBadLabelsByID)
+
 module.exports = router;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,180 +7,209 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
-// Dummy data
-const dummyCafes = [
-  { name: "rok", location: "$$ | Koreatown", rating: 4.7 },
-  { name: "Modu", location: "$$ | Highland Park", rating: 4.6 },
-  { name: "Established Today", location: "$$ | West Hollywood", rating: 4.2 },
-  { name: "Picnic Coffee", location: "$$$ | Silverlake", rating: 4.0 },
-  { name: "Yeems Coffee", location: "$$ | Koreatown", rating: 4.3 },
-  { name: "Maru Coffee", location: "$$ | Koreatown", rating: 4.1 },
-];
+import ReviewScreen from "../reviewComponents/review"; // ensure this is correctly imported
 
 export default function YourListScreen() {
   const [activeTab, setActiveTab] = useState("have tried");
   const [isFilterTabOpen, setIsFilterTabOpen] = useState(false);
+  const [cafes, setCafes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCafeID, setSelectedCafeID] = useState<string | null>(null);
+
+  const fetchCafes = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/cafes/getAll");
+      const data = await response.json();
+      setCafes(data || []);
+    } catch (error) {
+      console.error("Error fetching cafes:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCafes();
+  }, []);
 
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Your List</Text>
 
-      {/* Tabs */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === "have tried" && styles.activeTab,
-          ]}
-          onPress={() => setActiveTab("have tried")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "have tried" && styles.activeTabText,
-            ]}
-          >
-            have tried
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === "want to try" && styles.activeTab,
-          ]}
-          onPress={() => setActiveTab("want to try")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "want to try" && styles.activeTabText,
-            ]}
-          >
-            want to try
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.filterIcon}
-          onPress={() => setIsFilterTabOpen(!isFilterTabOpen)}
-        >
-          <Ionicons name="filter-outline" size={20} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Conditional Content: either the list or the filter UI */}
-      {isFilterTabOpen ? (
-        // Filter UI (replaces the list)
-        <View style={styles.filterTab}>
-          <Text style={styles.sectionTitle}>neighborhood</Text>
-          <View style={styles.searchBox}>
-            <TextInput
-              placeholder="search all neighborhoods ..."
-              placeholderTextColor="#555"
-              style={styles.input}
-            />
-          </View>
-          <View style={styles.chipContainer}>
-            {[
-              "Silverlake",
-              "Koreatown",
-              "Downtown LA",
-              "West Hollywood",
-              "Santa Monica",
-              "Echo Park",
-              "Sawtelle",
-              "Westwood",
-            ].map((item, i) => (
-              <View key={i} style={styles.chip}>
-                <Text style={styles.chipText}>{item}</Text>
-              </View>
-            ))}
-          </View>
-
-          <Text style={styles.sectionTitle}>amenities</Text>
-          <View style={styles.searchBox}>
-            <TextInput
-              placeholder="search all amenities ..."
-              placeholderTextColor="#555"
-              style={styles.input}
-            />
-          </View>
-          <View style={styles.chipContainer}>
-            {[
-              "Outlets",
-              "Study Spot",
-              "Free Wifi",
-              "Late Night",
-              "Pastries",
-              "Comfy Seats",
-              "Pet-Friendly",
-              "Good Music",
-            ].map((item, i) => (
-              <View key={i} style={styles.chip}>
-                <Text style={styles.chipText}>{item}</Text>
-              </View>
-            ))}
-          </View>
-
-          <View style={styles.footerRow}>
-            <Text
-              style={styles.clearText}
-              onPress={() => {
-                console.log("cleared filters");
-                // optionally reset selected filters
-              }}
-            >
-              clear all
-            </Text>
-            <TouchableOpacity
-              style={styles.applyButton}
-              onPress={() => {
-                console.log("apply filters");
-                setIsFilterTabOpen(false); // close filter tab
-              }}
-            >
-              <Text style={styles.applyText}>apply</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+      {selectedCafeID ? (
+        <ReviewScreen
+          cafeID={selectedCafeID}
+          goBack={() => setSelectedCafeID(null)}
+        />
       ) : (
         <>
-          {/* Search Bar */}
-          <View style={styles.searchBar}>
-            <TextInput
-              placeholder="search within your list ..."
-              placeholderTextColor="#999"
-              style={styles.searchInput}
-            />
+          {/* Tabs */}
+          <View style={styles.tabContainer}>
+            <TouchableOpacity
+              style={[
+                styles.tabButton,
+                activeTab === "have tried" && styles.activeTab,
+              ]}
+              onPress={() => setActiveTab("have tried")}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === "have tried" && styles.activeTabText,
+                ]}
+              >
+                have tried
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.tabButton,
+                activeTab === "want to try" && styles.activeTab,
+              ]}
+              onPress={() => setActiveTab("want to try")}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === "want to try" && styles.activeTabText,
+                ]}
+              >
+                want to try
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.filterIcon}
+              onPress={() => setIsFilterTabOpen(!isFilterTabOpen)}
+            >
+              <Ionicons name="filter-outline" size={20} />
+            </TouchableOpacity>
           </View>
 
-          {/* Cafe Cards */}
-          {dummyCafes.map((cafe, i) => (
-            <View key={i} style={styles.card}>
-              <View style={styles.cardRow}>
-                <Text style={styles.cardNumber}>{i + 1}.</Text>
-                <Image
-                  source={require("../../assets/images/cafe.png")}
-                  style={styles.cardImage}
+          {isFilterTabOpen ? (
+            <View style={styles.filterTab}>
+              {/* Filter UI */}
+              <Text style={styles.sectionTitle}>neighborhood</Text>
+              <View style={styles.searchBox}>
+                <TextInput
+                  placeholder="search all neighborhoods ..."
+                  placeholderTextColor="#555"
+                  style={styles.input}
                 />
-                <View style={styles.cardInfo}>
-                  <Text style={styles.cardName}>{cafe.name}</Text>
-                  <Text style={styles.cardLocation}>{cafe.location}</Text>
-                  <Text style={styles.cardRating}>
-                    {activeTab === "have tried"
-                      ? "Your overall rating:"
-                      : "What others think:"}{" "}
-                    <Text style={styles.star}>★</Text> {cafe.rating}/5
-                  </Text>
-                </View>
               </View>
-              <TouchableOpacity style={styles.dropdownIcon}>
-                <Ionicons name="chevron-down" size={20} />
-              </TouchableOpacity>
+              <View style={styles.chipContainer}>
+                {[
+                  "Silverlake",
+                  "Koreatown",
+                  "Downtown LA",
+                  "West Hollywood",
+                  "Santa Monica",
+                  "Echo Park",
+                  "Sawtelle",
+                  "Westwood",
+                ].map((item, i) => (
+                  <View key={i} style={styles.chip}>
+                    <Text style={styles.chipText}>{item}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <Text style={styles.sectionTitle}>amenities</Text>
+              <View style={styles.searchBox}>
+                <TextInput
+                  placeholder="search all amenities ..."
+                  placeholderTextColor="#555"
+                  style={styles.input}
+                />
+              </View>
+              <View style={styles.chipContainer}>
+                {[
+                  "Outlets",
+                  "Study Spot",
+                  "Free Wifi",
+                  "Late Night",
+                  "Pastries",
+                  "Comfy Seats",
+                  "Pet-Friendly",
+                  "Good Music",
+                ].map((item, i) => (
+                  <View key={i} style={styles.chip}>
+                    <Text style={styles.chipText}>{item}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.footerRow}>
+                <Text
+                  style={styles.clearText}
+                  onPress={() => {
+                    console.log("cleared filters");
+                  }}
+                >
+                  clear all
+                </Text>
+                <TouchableOpacity
+                  style={styles.applyButton}
+                  onPress={() => {
+                    console.log("apply filters");
+                    setIsFilterTabOpen(false);
+                  }}
+                >
+                  <Text style={styles.applyText}>apply</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          ))}
+          ) : (
+            <>
+              {/* Search Bar */}
+              <View style={styles.searchBar}>
+                <TextInput
+                  placeholder="search within your list ..."
+                  placeholderTextColor="#999"
+                  style={styles.searchInput}
+                />
+              </View>
+
+              {loading ? (
+                <ActivityIndicator />
+              ) : (
+                cafes.map((cafe, i) => (
+                  <TouchableOpacity
+                    key={cafe._id || i}
+                    onPress={() => setSelectedCafeID(cafe._id)}
+                  >
+                    <View style={styles.card}>
+                      <View style={styles.cardRow}>
+                        <Text style={styles.cardNumber}>{i + 1}.</Text>
+                        <Image
+                          source={require("../../assets/images/cafe.png")}
+                          style={styles.cardImage}
+                        />
+                        <View style={styles.cardInfo}>
+                          <Text style={styles.cardName}>{cafe.name}</Text>
+                          <Text style={styles.cardLocation}>
+                            {cafe.location || "$$ | Neighborhood"}
+                          </Text>
+                          <Text style={styles.cardRating}>
+                            {activeTab === "have tried"
+                              ? "Your overall rating:"
+                              : "What others think:"}{" "}
+                            <Text style={styles.star}>★</Text>{" "}
+                            {parseFloat(cafe.rating || 0).toFixed(1)}/5
+                          </Text>
+                        </View>
+                      </View>
+                      <TouchableOpacity style={styles.dropdownIcon}>
+                        <Ionicons name="chevron-down" size={20} />
+                      </TouchableOpacity>
+                    </View>
+                  </TouchableOpacity>
+                ))
+              )}
+            </>
+          )}
         </>
       )}
     </ScrollView>
@@ -292,11 +321,10 @@ const styles = StyleSheet.create({
     bottom: 10,
     right: 12,
   },
-  // Filter Tab Styles
   filterTab: {
     marginTop: 16,
     paddingBottom: 32,
-    backgroundColor: "#f5fff5", // Visible background for testing
+    backgroundColor: "#f5fff5",
   },
   sectionTitle: {
     fontSize: 16,

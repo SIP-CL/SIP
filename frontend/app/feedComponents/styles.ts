@@ -22,18 +22,23 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   cafeCard: {
-    backgroundColor: '#ddd',
     padding: 16,
     borderRadius: 10,
     marginRight: 12,
-    width: 160
+    width: 160,
+    justifyContent: 'flex-end'
+  },
+  cafeImage: {
+    width: 55,
+    height: 55,
+    borderRadius: 8,
   },
   cafeName: {
     fontWeight: '600',
     marginBottom: 4
   },
   collectionCard: {
-    backgroundColor: '#ddd',
+    backgroundColor: '#E6F1E5',
     padding: 20,
     borderRadius: 10,
     marginVertical: 6
@@ -49,11 +54,29 @@ const styles = StyleSheet.create({
     borderBottomColor: '#000'
   },
   rankCard: {
-    backgroundColor: '#eee',
+    backgroundColor: '#E6F1E5',
     padding: 16,
     borderRadius: 10,
     marginBottom: 10
-  }
+  },
+  trendingCard: {
+    width: 160,
+    height: 160,
+    justifyContent: 'flex-end',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    borderRadius: 16,
+    padding: 10,
+    justifyContent: 'flex-end',
+  },
+  trendingCardText: {
+    color: 'white',
+    fontWeight: '600',
+  },
 });
 
 export default styles;

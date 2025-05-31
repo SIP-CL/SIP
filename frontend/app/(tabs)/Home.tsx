@@ -1,4 +1,4 @@
-import { Text, ScrollView, View, TouchableOpacity } from "react-native";
+import { SafeAreaView, Text, ScrollView, View, TouchableOpacity } from "react-native";
 import React, { useEffect, useState, useMemo } from "react";
 import TrendingSection from "../feedComponents/TrendingSection";
 import styles from "../feedComponents/styles";
@@ -32,26 +32,36 @@ export default function HomeScreen() {
   const trendingCafes = useMemo(() => {
     return cafes
       .filter((c) => c.numReviews >= 200 && c.rating >= 4.0)
-      .sort(() => Math.random() - 0.5);
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 5);
   }, [cafes]);
 
   const coffeeCafes = cafes
-    .filter((c) => c.drinkCategories?.includes("Coffee"))
-    .sort((a, b) =>
-      b.rating !== a.rating ? b.rating - a.rating : b.numReviews - a.numReviews
-    );
+  .filter((c) =>
+    c.drinkCategories?.includes("Coffee") &&
+    c.numReviews >= 200 &&
+    c.rating >= 4.0
+  )
+  .sort(() => Math.random() - 0.5)
+  .slice(0, 5);
 
-  const matchaCafes = cafes
-    .filter((c) => c.drinkCategories?.includes("Matcha"))
-    .sort((a, b) =>
-      b.rating !== a.rating ? b.rating - a.rating : b.numReviews - a.numReviews
-    );
+const matchaCafes = cafes
+  .filter((c) =>
+    c.drinkCategories?.includes("Matcha") &&
+    c.numReviews >= 200 &&
+    c.rating >= 4.0
+  )
+  .sort(() => Math.random() - 0.5)
+  .slice(0, 5);
 
-  const teaCafes = cafes
-    .filter((c) => c.drinkCategories?.includes("Tea"))
-    .sort((a, b) =>
-      b.rating !== a.rating ? b.rating - a.rating : b.numReviews - a.numReviews
-    );
+const teaCafes = cafes
+  .filter((c) =>
+    c.drinkCategories?.includes("Tea") &&
+    c.numReviews >= 200 &&
+    c.rating >= 4.0
+  )
+  .sort(() => Math.random() - 0.5)
+  .slice(0, 5);
 
   const drinkTabs = ["Coffee", "Matcha", "Tea"];
 
@@ -78,49 +88,51 @@ export default function HomeScreen() {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text style={styles.header}>Welcome</Text>
-        <Feather name="bell" size={20} color="black" />
-      </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <ScrollView style={styles.container}>
+        <View style={styles.headerRow}>
+          <Text style={styles.header}>Welcome</Text>
+          <Feather name="bell" size={20} color="black" />
+        </View>
 
-      <SearchBar query={searchQuery} setQuery={setSearchQuery} />
+        <SearchBar query={searchQuery} setQuery={setSearchQuery} />
 
-      <View style={styles.divider} />
+        <View style={styles.divider} />
 
-      <TrendingSection cafes={trendingCafes} onCafeSelect={setSelectedCafeID} />
+        <TrendingSection cafes={trendingCafes} onCafeSelect={setSelectedCafeID} />
 
-      <CafeCollection />
+        <CafeCollection />
 
-      <Text style={styles.sectionHeader}>Top Cafes by Drinks</Text>
-      <View style={styles.tabHeader}>
-        {drinkTabs.map((drink) => (
-          <TouchableOpacity
-            key={drink}
-            style={[
-              styles.tab,
-              selectedDrink === drink && {
-                borderBottomColor: "black",
-                borderBottomWidth: 2,
-              },
-            ]}
-            onPress={() => setSelectedDrink(drink)}
-          >
-            <Text
-              style={{
-                fontWeight: selectedDrink === drink ? "bold" : "normal",
-              }}
+        <Text style={styles.sectionHeader}>Top Cafes by Drinks</Text>
+        <View style={styles.tabHeader}>
+          {drinkTabs.map((drink) => (
+            <TouchableOpacity
+              key={drink}
+              style={[
+                styles.tab,
+                selectedDrink === drink && {
+                  borderBottomColor: "black",
+                  borderBottomWidth: 2,
+                },
+              ]}
+              onPress={() => setSelectedDrink(drink)}
             >
-              {drink}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+              <Text
+                style={{
+                  fontWeight: selectedDrink === drink ? "bold" : "normal",
+                }}
+              >
+                {drink}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      <TopCafes
-        cafes={getCafesForDrink(selectedDrink)}
-        onCafeSelect={setSelectedCafeID}
-      />
-    </ScrollView>
+        <TopCafes
+          cafes={getCafesForDrink(selectedDrink)}
+          onCafeSelect={setSelectedCafeID}
+        />
+      </ScrollView>
+    </SafeAreaView>
   );
 }

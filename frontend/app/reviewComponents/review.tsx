@@ -141,6 +141,10 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
       }
     }
 
+    console.log('Filtered Good Labels:', filteredGood);
+    console.log('Filtered Bad Labels:', filteredBad);
+
+
     setGoodLabels(filteredGood)
     setBadLabels(filteredBad)
   }
@@ -285,9 +289,9 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
                   <Text style={styles.label}>Ammenities</Text>
                   <View style={styles.labelRow}>
                     {[
-                      ...Object.keys(goodLabels).map((label) => ({ label, color: '#3C751E' })),
-                      ...Object.keys(badLabels).map((label) => ({ label, color: '#E6725A' }))
-                    ].map(({ label, color }) => (
+                      ...Object.entries(goodLabels).map(([label, count]) => ({ label, count, color: '#3C751E' })),
+                      ...Object.entries(badLabels).map(([label, count]) => ({ label, count, color: '#E6725A' }))
+                    ].map(({ label, count, color }) => (
                       <Labels
                         key={label}
                         label={label}

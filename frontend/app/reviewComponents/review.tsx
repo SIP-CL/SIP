@@ -63,7 +63,7 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
     })
   }, []);
 
-  console.log('Current user:', user);
+  // console.log('Current user:', user);
 
   const [activeTab, setActiveTab] = useState<'Menu' | 'Info' | 'Reviews'>('Reviews');
 
@@ -141,8 +141,8 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
       }
     }
 
-    console.log('Filtered Good Labels:', filteredGood);
-    console.log('Filtered Bad Labels:', filteredBad);
+    // console.log('Filtered Good Labels:', filteredGood);
+    // console.log('Filtered Bad Labels:', filteredBad);
 
 
     setGoodLabels(filteredGood)
@@ -199,6 +199,7 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
       if (response.ok) {
         Alert.alert('Thank you! Your review has been submitted.');
         fetchReviews();  // Refresh reviews after submission
+        fetchCafeInfo();
       } else {
         Alert.alert('Error', 'There was a problem submitting your review.');
       }
@@ -256,7 +257,7 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
                   </View>
                 </View>
                 <View style={styles.rating}>
-                  <StarRating rating={parseFloat(cafe.rating) || 0} size={20} readOnly />
+                  <StarRating rating={parseFloat(cafe.ratings['overall']['rating']) || 0} size={20} readOnly />
                 </View>
                 <Text style={styles.cafeAddress}>{cafe.address}</Text>
               </View>

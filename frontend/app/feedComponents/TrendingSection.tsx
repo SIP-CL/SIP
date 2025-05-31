@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ImageBackground } from 'react-native';
 import styles from './styles';
 import Entypo from '@expo/vector-icons/Entypo';
 
@@ -19,11 +19,21 @@ export default function TrendingSection({ cafes, onCafeSelect }: Props) {
             style={styles.cafeCard}
             onPress={() => onCafeSelect(cafe._id)}
           >
-            <Text style={styles.cafeName}>{cafe.name}</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-              <Entypo name="star-outlined" size={15} color="black" style={{ marginRight: 4 }} />
-              <Text>{cafe.rating} ({cafe.numReviews})</Text>
-            </View>
+            <ImageBackground
+              source={require('../../assets/images/template.png')}
+              style={styles.trendingCard}
+              imageStyle={{ borderRadius: 16 }}
+            >
+              <View style={styles.overlay}>
+                <View style={{ marginTop: 'auto' }}>
+                  <Text style={styles.trendingCardText}>{cafe.name}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                    <Entypo name="star-outlined" size={15} color="white" style={{ marginRight: 4 }} />
+                    <Text style={styles.trendingCardText}>{cafe.rating} ({cafe.numReviews})</Text>
+                  </View>
+                </View>
+              </View>
+            </ImageBackground>
           </TouchableOpacity>
         ))}
       </ScrollView>

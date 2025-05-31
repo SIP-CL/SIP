@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { useAuth } from "../../firebase/authContext";
 import Ranking from "../../assets/images/Ranking.svg";
+import SettingIcon from "../../assets/images/setting-2.svg";
 import {
   View,
   Text,
@@ -9,6 +11,8 @@ import {
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 // Dummy Top Rated cafes
 const topRatedCafes = [
@@ -51,8 +55,10 @@ const CafeCard = ({ name, location, rating, isSaved, onToggleSave }) => (
 
 // ProfileScreen Component
 export default function ProfileScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [activeTab, setActiveTab] = useState("Top Rated");
   const [savedCards, setSavedCards] = useState([false, false, false, false]);
+  const { user, loading } = useAuth();
 
   const toggleSave = (index) => {
     const newSaved = [...savedCards];
@@ -60,16 +66,25 @@ export default function ProfileScreen() {
     setSavedCards(newSaved);
   };
 
+  if (loading) return null;
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.username}>Jenny</Text>
+        <TouchableOpacity
+          style={styles.settingsIcon}
+          onPress={() => navigation.navigate("profileComponents/settings")}
+        >
+          <SettingIcon width={24} height={24} />
+        </TouchableOpacity>
+
+        <Text style={styles.username}>{user?.displayName ?? "Jenny"}</Text>
+
         <Image
           source={require("../../assets/images/Jenny.png")}
           style={styles.profileImage}
         />
-        <Text style={styles.handle}>Sip@gmail.com</Text>
+        <Text style={styles.handle}>{user?.email ?? "No email found"}</Text>
         <Text style={styles.bio}>
           someone who just loves the occassional matcha-study sesh.
         </Text>
@@ -98,7 +113,7 @@ export default function ProfileScreen() {
           }}
         >
           <View style={{ flex: 1, marginRight: 10, padding: 3 }}>
-            <Text style={{ fontWeight: "bold", fontSize: 20, marginBottom: 4 }}>
+            <Text style={{ fontSize: 20, marginBottom: 4 }}>
               <Text style={{ color: "#3C751E" }}>#15</Text> Places Ranked!
             </Text>
             <Text style={{ fontSize: 10, color: "#555555" }}>
@@ -160,32 +175,20 @@ export default function ProfileScreen() {
           />
         ))}
 
-      {/* {activeTab === "Saved" &&
-        topRatedCafes
-          .map((cafe, i) => ({ ...cafe, index: i }))
-          .filter((_, i) => savedCards[i])
-          .map((cafe) => (
-            <CafeCard
-              key={cafe.index}
-              name={cafe.name}
-              location={cafe.location}
-              rating={cafe.rating}
-              isSaved={true}
-              onToggleSave={() => toggleSave(cafe.index)}
-            />
-          ))} */}
-
       {activeTab === "Saved" &&
-        topRatedCafes.map((cafe, i) => (
-          <CafeCard
-            key={`saved-${i}`}
-            name={cafe.name}
-            location={cafe.location}
-            rating={cafe.rating}
-            isSaved={true}
-            onToggleSave={() => {}}
-          />
-        ))}
+        topRatedCafes.map(
+          (cafe, i) =>
+            savedCards[i] && (
+              <CafeCard
+                key={`saved-${i}`}
+                name={cafe.name}
+                location={cafe.location}
+                rating={cafe.rating}
+                isSaved={true}
+                onToggleSave={() => toggleSave(i)}
+              />
+            )
+        )}
 
       {activeTab === "Activity" && (
         <Text style={{ textAlign: "center", marginTop: 20, color: "#666" }}>
@@ -204,11 +207,23 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: "center",
+    marginBottom: 12,
+    paddingTop: 10,
+    position: "relative",
+  },
+  settingsIcon: {
+    position: "absolute",
+    top: 10,
+    right: 0,
+    padding: 10,
+    zIndex: 2,
   },
   username: {
     fontSize: 28,
     fontWeight: "bold",
     color: "#2e7d32",
+    textAlign: "center",
+    zIndex: 1,
   },
   profileImage: {
     width: 110,
@@ -218,7 +233,6 @@ const styles = StyleSheet.create({
   },
   handle: {
     fontSize: 16,
-    fontWeight: "600",
   },
   bio: {
     color: "#666",
@@ -274,7 +288,6 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   activeTab: {
-    fontWeight: "bold",
     color: "#2e7d32",
   },
   inactiveTab: {
@@ -298,7 +311,6 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   cardTitle: {
-    fontWeight: "bold",
     fontSize: 15,
   },
   cardLocation: {

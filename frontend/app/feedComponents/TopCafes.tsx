@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import styles from './styles';
 import Entypo from '@expo/vector-icons/Entypo';
 
@@ -10,7 +10,6 @@ type Props = {
 
 export default function TopCafesByDrinks({ cafes, onCafeSelect }: Props) {
   return (
-    
     <View>
       {cafes.slice(0, 5).map((cafe, index) => (
         <TouchableOpacity
@@ -18,10 +17,26 @@ export default function TopCafesByDrinks({ cafes, onCafeSelect }: Props) {
           style={styles.rankCard}
           onPress={() => onCafeSelect(cafe._id)}
         >
-          <Text>{index + 1}. {cafe.name}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-            <Entypo name="star-outlined" size={15} color="black" style={{ marginRight: 4 }} />
-            <Text>{cafe.rating} ({cafe.numReviews})</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            {/* Hardcoded image on the left */}
+            <Image
+              source={require('../../assets/images/cafe.png')}
+              style={styles.cafeImage}
+            />
+
+            {/* Text block (index + name, then rating/count) */}
+            <View style={{ marginLeft: 12, flex: 1 }}>
+              <Text>
+                {index + 1}. {cafe.name}
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                <Entypo name="star-outlined" size={15} color="black" style={{ marginRight: 4 }} />
+                <Text>
+                  {cafe.ratings?.overall?.rating.toFixed(1) ?? 'N/A'} (
+                  {cafe.ratings?.overall?.count ?? 0})
+                </Text>
+              </View>
+            </View>
           </View>
         </TouchableOpacity>
       ))}

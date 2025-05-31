@@ -63,7 +63,7 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
     })
   }, []);
 
-  console.log('Current user:', user);
+  // console.log('Current user:', user);
 
   const [activeTab, setActiveTab] = useState<'Menu' | 'Info' | 'Reviews'>('Reviews');
 
@@ -141,6 +141,10 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
       }
     }
 
+    // console.log('Filtered Good Labels:', filteredGood);
+    // console.log('Filtered Bad Labels:', filteredBad);
+
+
     setGoodLabels(filteredGood)
     setBadLabels(filteredBad)
   }
@@ -195,6 +199,7 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
       if (response.ok) {
         Alert.alert('Thank you! Your review has been submitted.');
         fetchReviews();  // Refresh reviews after submission
+        fetchCafeInfo();
       } else {
         Alert.alert('Error', 'There was a problem submitting your review.');
       }
@@ -252,7 +257,7 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
                   </View>
                 </View>
                 <View style={styles.rating}>
-                  <StarRating rating={parseFloat(cafe.rating) || 0} size={20} readOnly />
+                  <StarRating rating={parseFloat(cafe.ratings['overall']['rating']) || 0} size={20} readOnly />
                 </View>
                 <Text style={styles.cafeAddress}>{cafe.address}</Text>
               </View>
@@ -285,9 +290,9 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
                   <Text style={styles.label}>Ammenities</Text>
                   <View style={styles.labelRow}>
                     {[
-                      ...Object.keys(goodLabels).map((label) => ({ label, color: '#3C751E' })),
-                      ...Object.keys(badLabels).map((label) => ({ label, color: '#E6725A' }))
-                    ].map(({ label, color }) => (
+                      ...Object.entries(goodLabels).map(([label, count]) => ({ label, count, color: '#3C751E' })),
+                      ...Object.entries(badLabels).map(([label, count]) => ({ label, count, color: '#E6725A' }))
+                    ].map(({ label, count, color }) => (
                       <Labels
                         key={label}
                         label={label}

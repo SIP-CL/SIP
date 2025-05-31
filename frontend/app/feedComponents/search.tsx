@@ -5,9 +5,14 @@ type Cafe = {
   _id: string;
   name: string;
   address: string;
-  rating: number;
-  numReviews: number;
+  ratings: {
+    overall: {
+      count: number;
+      rating: number;
+    };
+  };
 };
+
 
 type Props = {
   query: string;
@@ -49,13 +54,16 @@ export default function SearchBar({ query, setQuery }: Props) {
         <Text style={styles.noResults}>No results found.</Text>
       )}
 
-      {results.map((cafe) => (
-        <View key={cafe._id} style={styles.result}>
-          <Text style={styles.name}>{cafe.name}</Text>
-          <Text style={styles.details}>{cafe.address}</Text>
-          <Text style={styles.details}>⭐ {cafe.rating} ({cafe.numReviews} reviews)</Text>
-        </View>
-      ))}
+    {results.map((cafe) => (
+      <View key={cafe._id} style={styles.result}>
+        <Text style={styles.name}>{cafe.name}</Text>
+        <Text style={styles.details}>{cafe.address}</Text>
+        <Text style={styles.details}>
+          ⭐ {cafe.ratings?.overall?.rating?.toFixed(1) || 'N/A'} ({cafe.ratings?.overall?.count || 0} reviews)
+        </Text>
+      </View>
+    ))}
+
     </ScrollView>
   );
 }

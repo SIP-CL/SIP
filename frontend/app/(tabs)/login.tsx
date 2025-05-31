@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Text,
   View,
@@ -9,6 +9,7 @@ import {
 import { auth } from "../../firebase/firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "expo-router";
+import { useAuth } from "../../firebase/authContext";
 import styles1 from "../loginComponents/stylesLogin"; // shared styles
 
 export default function LoginScreen() {
@@ -16,6 +17,14 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const router = useRouter();
+
+  const {user, loading} = useAuth(); 
+
+   useEffect(() => {
+    if (!loading && user) {
+      router.replace("/feed");
+    }
+  }, [user, loading]);
 
   const handleLogin = async () => {
     try {

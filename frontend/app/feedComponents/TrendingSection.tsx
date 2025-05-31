@@ -29,7 +29,7 @@ export default function TrendingSection({ cafes, onCafeSelect }: Props) {
                   <Text style={styles.trendingCardText}>{cafe.name}</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                     <Entypo name="star-outlined" size={15} color="white" style={{ marginRight: 4 }} />
-                    <Text style={styles.trendingCardText}>{cafe.rating} ({cafe.numReviews})</Text>
+                    <Text style={styles.trendingCardText}>{cafe.ratings['overall']['rating']} ({cafe.ratings['overall']['count']})</Text>
                   </View>
                 </View>
               </View>

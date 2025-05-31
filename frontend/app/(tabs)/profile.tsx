@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useAuth } from "../../firebase/authContext";
 import Ranking from "../../assets/images/Ranking.svg";
 import SettingIcon from "../../assets/images/setting-2.svg";
 import {
@@ -57,6 +58,7 @@ export default function ProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [activeTab, setActiveTab] = useState("Top Rated");
   const [savedCards, setSavedCards] = useState([false, false, false, false]);
+  const { user, loading } = useAuth();
 
   const toggleSave = (index) => {
     const newSaved = [...savedCards];
@@ -64,6 +66,7 @@ export default function ProfileScreen() {
     setSavedCards(newSaved);
   };
 
+  if (loading) return null;
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
@@ -75,13 +78,13 @@ export default function ProfileScreen() {
           <SettingIcon width={24} height={24} />
         </TouchableOpacity>
 
-        <Text style={styles.username}>Jenny</Text>
+        <Text style={styles.username}>{user?.displayName ?? "Jenny"}</Text>
 
         <Image
           source={require("../../assets/images/Jenny.png")}
           style={styles.profileImage}
         />
-        <Text style={styles.handle}>Sip@gmail.com</Text>
+        <Text style={styles.handle}>{user?.email ?? "No email found"}</Text>
         <Text style={styles.bio}>
           someone who just loves the occassional matcha-study sesh.
         </Text>

@@ -27,7 +27,7 @@ export default function TopCafesByDrinks({ cafes, onCafeSelect }: Props) {
               <Text>{index + 1}. {cafe.name}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                 <Entypo name="star-outlined" size={15} color="black" style={{ marginRight: 4 }} />
-                <Text>{cafe.rating} ({cafe.numReviews})</Text>
+                <Text>{cafe.ratings['overall']['rating']} ({cafe.ratings['overall']['count']})</Text>
               </View>
             </View>
           </View>

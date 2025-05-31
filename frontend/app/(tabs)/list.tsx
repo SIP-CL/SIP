@@ -197,7 +197,7 @@ export default function YourListScreen() {
                               ? "Your overall rating:"
                               : "What others think:"}{" "}
                             <Text style={styles.star}>★</Text>{" "}
-                            {parseFloat(cafe.rating || 0).toFixed(1)}/5
+                            {parseFloat(cafe.ratings['overall']['rating'] || 0).toFixed(1)}/5
                           </Text>
                         </View>
                       </View>

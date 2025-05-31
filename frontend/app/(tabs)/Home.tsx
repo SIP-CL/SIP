@@ -5,8 +5,8 @@ import styles from "../feedComponents/styles";
 import CafeCollection from "../feedComponents/CafeCollection";
 import TopCafes from "../feedComponents/TopCafes";
 import Feather from "@expo/vector-icons/Feather";
-import SearchBar from "../feedComponents/search";
 import ReviewScreen from "../reviewComponents/review";
+import SearchScreen from "../feedComponents/search";
 type Cafe = {
   _id: string;
   name: string;
@@ -19,8 +19,9 @@ type Cafe = {
 export default function HomeScreen() {
   const [cafes, setCafes] = useState<Cafe[]>([]);
   const [selectedDrink, setSelectedDrink] = useState("Coffee");
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCafeID, setSelectedCafeID] = useState<string | null>(null);
+  const [searchMode, setSearchMode] = useState(false);
+
 
   useEffect(() => {
     fetch("http://localhost:3000/cafes/getAll")
@@ -87,6 +88,17 @@ const teaCafes = cafes
     );
   }
 
+  if (searchMode) {
+    return (
+      <SearchScreen goBack={() => setSearchMode(false)} 
+        onCafeSelect={(id) => {
+          setSearchMode(false);
+          setSelectedCafeID(id);
+        }}
+      />
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <ScrollView style={styles.container}>
@@ -95,7 +107,12 @@ const teaCafes = cafes
           <Feather name="bell" size={20} color="black" />
         </View>
 
-        <SearchBar query={searchQuery} setQuery={setSearchQuery} />
+        <TouchableOpacity onPress={() => setSearchMode(true)}>
+        <View style={styles.searchBar}>
+          <Feather name="search" size={20} color="#555" style={{ marginRight: 8 }} />
+          <Text style={{ color: '#777', fontSize: 16 }}>Search for a cafe...</Text>
+        </View>
+      </TouchableOpacity>
 
         <View style={styles.divider} />
 

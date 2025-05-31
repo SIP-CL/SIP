@@ -9,9 +9,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  searchBar: {
-    backgroundColor: '#eee', padding: 10, borderRadius: 8, marginBottom: 16
-  },
   sectionHeader: {
     fontSize: 18, fontWeight: '600', marginTop: 24, marginBottom: 8
   },
@@ -76,6 +73,15 @@ const styles = StyleSheet.create({
   trendingCardText: {
     color: 'white',
     fontWeight: '600',
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#e5e5e5',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 999,
+    marginBottom: 16,
   },
 });
 

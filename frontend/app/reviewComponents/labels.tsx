@@ -13,9 +13,10 @@ const Label: React.FC<Props> = ({ label, selected = false, onPress, color = '#00
     backgroundColor: selected ? color : 'white',
     borderColor: color,
     borderWidth: 1,
-    padding: 5,
+    paddingVertical: 5,
+    paddingHorizontal: 2,
     borderRadius: 999,
-    margin: 5,
+    margin: 2,
   };
 
   const textStyle = {

@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  TouchableOpacity,
-  SafeAreaView,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 import Entypo from '@expo/vector-icons/Entypo';
 import Labels from '../reviewComponents/labels';
@@ -78,7 +70,6 @@ export default function SearchScreen({ goBack, onCafeSelect }: Props) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
-        {/* ─── Back Arrow + Title ───────────────────────────────────────── */}
         <View style={styles.topRow}>
           <TouchableOpacity onPress={goBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Feather name="arrow-left" size={24} />
@@ -86,7 +77,6 @@ export default function SearchScreen({ goBack, onCafeSelect }: Props) {
           <Text style={styles.title}>Search</Text>
         </View>
 
-        {/* ─── Search Input Bar ──────────────────────────────────────────── */}
         <View style={styles.searchBar}>
           <Feather name="search" size={20} color="#555" style={{ marginRight: 8 }} />
           <TextInput
@@ -99,7 +89,6 @@ export default function SearchScreen({ goBack, onCafeSelect }: Props) {
           />
         </View>
 
-        {/* ─── Filter Chips Row ──────────────────────────────────────────── */}
         <View style={{ marginBottom: 16 }}>
           <View style={styles.filterContainer}>
             {availableFilters.map((label) => (
@@ -114,12 +103,10 @@ export default function SearchScreen({ goBack, onCafeSelect }: Props) {
           </View>
         </View>
 
-        {/* ─── “No results found” Message ───────────────────────────────── */}
         {query.length >= 2 && results.length === 0 && (
           <Text style={styles.noResultsText}>No results found.</Text>
         )}
 
-        {/* ─── Search Results List ──────────────────────────────────────── */}
         {results.map((cafe) => (
           <TouchableOpacity
             key={cafe._id}

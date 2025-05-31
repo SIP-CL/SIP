@@ -18,13 +18,10 @@ export default function TopCafesByDrinks({ cafes, onCafeSelect }: Props) {
           onPress={() => onCafeSelect(cafe._id)}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            {/* Hardcoded image on the left */}
             <Image
               source={require('../../assets/images/cafe.png')}
               style={styles.cafeImage}
             />
-
-            {/* Text block (index + name, then rating/count) */}
             <View style={{ marginLeft: 12, flex: 1 }}>
               <Text>
                 {index + 1}. {cafe.name}

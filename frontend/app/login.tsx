@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   Pressable,
 } from "react-native";
-import { auth } from "../../firebase/firebaseConfig";
+import { auth } from "../firebase/firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "expo-router";
-import { useAuth } from "../../firebase/authContext";
-import styles1 from "../loginComponents/stylesLogin"; // shared styles
+import { useAuth } from "../firebase/authContext";
+import styles1 from "./loginComponents/stylesLogin"; // shared styles
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -18,11 +18,11 @@ export default function LoginScreen() {
   const [errorMsg, setErrorMsg] = useState("");
   const router = useRouter();
 
-  const {user, loading} = useAuth(); 
+  const { user, loading } = useAuth();
 
-   useEffect(() => {
+  useEffect(() => {
     if (!loading && user) {
-      router.replace("/feed");
+      router.replace("/Feed");
     }
   }, [user, loading]);
 

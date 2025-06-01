@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../../firebase/authContext";
+import { auth } from "../../firebase/firebaseConfig";
 import Ranking from "../../assets/images/Ranking.svg";
 import SettingIcon from "../../assets/images/setting-2.svg";
 import {
@@ -78,7 +79,7 @@ export default function ProfileScreen() {
           <SettingIcon width={24} height={24} />
         </TouchableOpacity>
 
-        <Text style={styles.username}>{user?.displayName ?? "Jenny"}</Text>
+        <Text style={styles.username}>{user?.displayName ?? "noName"}</Text>
 
         <Image
           source={require("../../assets/images/Jenny.png")}

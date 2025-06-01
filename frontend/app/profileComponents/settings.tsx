@@ -1,4 +1,9 @@
 import React, { useState } from "react";
+import { auth } from "../../firebase/firebaseConfig";
+import { useAuth } from "../../firebase/authContext"; 
+import { signOut } from "firebase/auth"; 
+import {useRouter} from "expo-router";
+
 import {
   View,
   Text,
@@ -17,6 +22,9 @@ export default function SettingsScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [locationEnabled, setLocationEnabled] = useState(false);
 
+  const {user} = useAuth(); 
+  const router = useRouter(); 
+
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
@@ -34,9 +42,9 @@ export default function SettingsScreen() {
           style={styles.profileImage}
         />
         <View style={styles.profileText}>
-          <Text style={styles.name}>Jenny</Text>
-          <Text style={styles.username}>jenny123</Text>
-          <Text style={styles.email}>jenny@g.ucla.edu</Text>
+          <Text style={styles.name}>{user?.displayName ??"NoName"}</Text>
+          <Text style={styles.username}>{user?.displayName?.toLowerCase().replace(/\s/g, "") ?? ""}</Text>
+          <Text style={styles.email}>{user?.email ?? ""}</Text>
         </View>
         <TouchableOpacity>
           <Ionicons name="chevron-forward" size={20} color="#2e7d32" />
@@ -84,7 +92,17 @@ export default function SettingsScreen() {
       </TouchableOpacity>
 
       {/* Sign Out */}
-      <TouchableOpacity style={styles.signOutRow}>
+      <TouchableOpacity style={styles.signOutRow}
+        onPress={async () => {
+          try { 
+            await signOut(auth); 
+            router.replace("/login"); 
+          }
+          catch (err) { 
+            console.error("error signing out:", err);
+          }
+        }}
+      >
         <Ionicons name="close-circle-outline" size={20} color="red" />
         <Text style={styles.signOutText}>sign out</Text>
       </TouchableOpacity>

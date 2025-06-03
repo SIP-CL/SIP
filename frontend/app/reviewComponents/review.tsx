@@ -8,17 +8,25 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  Image
+  Image,
+  Linking
 } from 'react-native';
 import ReviewForm from '../reviewComponents/ReviewForm';
 import StarRating from '../reviewComponents/StarRating';
 import ReturnIcon from '../../assets/images/Group.svg'
+import LocationIcon from '../../assets/images/location.svg';
+import PhoneIcon from '../../assets/images/phone.svg';
+import WebIcon from '../../assets/images/External_Link.svg';
+import TimeIcon from '../../assets/images/time.svg';
 import TabSelector from './TabSelector';
+import PlusIcon from '../../assets/images/plus.svg';
+import FlagIcon from '../../assets/images/flag.svg';
 import { auth } from '../../firebase/firebaseConfig'
 import { onAuthStateChanged } from 'firebase/auth';
 import { on } from 'events';
 import Labels from './labels';
-
+import CrowdednessSlider from './crowdedness';
+import CrowdednessGraph from './occupancyGraph';
 
 const getRelativeTime = (dateString: string) => {
   const now = new Date();
@@ -42,6 +50,265 @@ const getRelativeTime = (dateString: string) => {
   }
   return 'Just now';
 };
+const getOpenStatusWithTimes = (hoursMap: any) => {
+  const now = new Date();
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  let dayIndex = now.getDay();
+  let hour = now.getHours();
+  let minute = now.getMinutes();
+
+  // Late Night Handling (shift 12am-3am back to the previous day)
+  const isLateNight = hour < 4;
+  const effectiveDayIndex = isLateNight ? (dayIndex - 1 + 7) % 7 : dayIndex;
+  const currentDay = daysOfWeek[effectiveDayIndex];
+  const todayHours = hoursMap[currentDay];
+
+  if (!todayHours) {
+    return {
+      statusParts: [
+        { text: 'Closed today', color: '#E6725A' }
+      ]
+    };
+  }
+
+  // --- Dynamic timeKeys based on todayHours ---
+  const timeKeys = Object.keys(todayHours);
+
+  // Sort timeKeys properly (12am, 12:30am, 1am, 1:30am, ...)
+  timeKeys.sort((a, b) => timeKeyToMinutes(a) - timeKeyToMinutes(b));
+
+  // --- Find the current timeKey ---
+  const nowMinutes = hour * 60 + minute;
+  let currentTimeKey = null;
+  for (let i = 0; i < timeKeys.length; i++) {
+    if (timeKeyToMinutes(timeKeys[i]) <= nowMinutes) {
+      currentTimeKey = timeKeys[i];
+    } else {
+      break;
+    }
+  }
+
+  if (!currentTimeKey) {
+    currentTimeKey = timeKeys[0];
+  }
+
+  const hourValue = todayHours[currentTimeKey];
+  const isOpenNow = hourValue?.value === 1;
+
+  if (isOpenNow) {
+    // Find when it closes today
+    for (let i = timeKeys.indexOf(currentTimeKey) + 1; i < timeKeys.length; i++) {
+      const nextHourValue = todayHours[timeKeys[i]];
+      const nextOpen = nextHourValue?.value === 1;
+      if (!nextOpen) {
+        return {
+          statusParts: [
+            { text: 'Open', color: '#3C751E' },
+            { text: ` until ${formatTime(timeKeys[i])}`, color: '#000000' }
+          ]
+        };
+      }
+    }
+    return {
+      statusParts: [
+        { text: 'Open', color: '#3C751E' },
+        { text: ' now', color: '#000000' }
+      ]
+    };
+  } else {
+    // Find next open time today
+    for (let i = timeKeys.indexOf(currentTimeKey) + 1; i < timeKeys.length; i++) {
+      const nextHourValue = todayHours[timeKeys[i]];
+      const nextOpen = nextHourValue?.value === 1;
+      if (nextOpen) {
+        return {
+          statusParts: [
+            { text: 'Closed now', color: '#E6725A' },
+            { text: `, opens at ${formatTime(timeKeys[i])}`, color: '#000000' }
+          ]
+        };
+      }
+    }
+    // Search next days
+    for (let j = 1; j <= 7; j++) {
+      const nextDayIndex = (effectiveDayIndex + j) % 7;
+      const nextDay = daysOfWeek[nextDayIndex];
+      const nextDayHours = hoursMap[nextDay];
+      if (nextDayHours) {
+        const nextTimeKeys = Object.keys(nextDayHours).sort((a, b) => timeKeyToMinutes(a) - timeKeyToMinutes(b));
+        for (const key of nextTimeKeys) {
+          const nextHourValue = nextDayHours[key];
+          const nextOpen = nextHourValue?.value === 1;
+          if (nextOpen) {
+            return {
+              statusParts: [
+                { text: 'Closed now', color: '#E6725A' },
+                { text: `, opens at ${formatTime(key)} on ${nextDay}`, color: '#000000' }
+              ]
+            };
+          }
+        }
+      }
+    }
+    return {
+      statusParts: [
+        { text: 'Closed for the week', color: '#E6725A' }
+      ]
+    };
+  }
+};
+
+function getTodayOpenHours(hoursMap: any) {
+  const now = new Date();
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  let dayIndex = now.getDay();
+  const currentDay = daysOfWeek[dayIndex];
+  const nextDay = daysOfWeek[(dayIndex + 1) % 7];
+
+  const todayHours = hoursMap[currentDay];
+  const nextDayHours = hoursMap[nextDay];
+
+  if (!todayHours) {
+    return null;
+  }
+
+  const todayTimeKeys = Object.keys(todayHours).sort((a, b) => timeKeyToMinutes(a) - timeKeyToMinutes(b));
+
+  // Filter only times after 4:00 AM for *earliest* search
+  const filteredTimesForEarliest = todayTimeKeys.filter((key) => {
+    const minutes = timeKeyToMinutes(key);
+    return minutes >= 4 * 60; // 4:00 AM = 240 minutes
+  });
+
+  // Find first time where value is 1 (open)
+  const openTimesToday = filteredTimesForEarliest.filter((key) => {
+    const val = todayHours[key];
+    return val?.value === 1;
+  });
+
+  if (openTimesToday.length === 0) {
+    return null;
+  }
+
+  const earliest = openTimesToday[0];
+
+  // For latest time, check today's open hours and tomorrow's early hours (0am to 3am)
+  const lateTimesToday = todayTimeKeys.filter((key) => {
+    const val = todayHours[key];
+    return val?.value === 1;
+  });
+
+  let lateTimesNextDay: string[] = [];
+  if (nextDayHours) {
+    const nextDayTimeKeys = Object.keys(nextDayHours).sort((a, b) => timeKeyToMinutes(a) - timeKeyToMinutes(b));
+
+    // Only consider early morning times (12am–3am)
+    lateTimesNextDay = nextDayTimeKeys.filter((key) => {
+      const minutes = timeKeyToMinutes(key);
+      return minutes < 4 * 60 && nextDayHours[key]?.value === 1;
+    });
+  }
+
+  const allLateTimes = [...lateTimesToday, ...lateTimesNextDay];
+
+  if (allLateTimes.length === 0) {
+    return null;
+  }
+
+  const latest = allLateTimes[allLateTimes.length - 1];
+
+  return {
+    earliest: formatTime(earliest),
+    latest: formatTime(latest)
+  };
+}
+
+function getCurrentOccupancy(hoursMap: any): number | null {
+  const now = new Date();
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  let dayIndex = now.getDay();
+  let hour = now.getHours();
+  let minute = now.getMinutes();
+
+  // Late Night Handling (shift 12am-3am back to the previous day)
+  const isLateNight = hour < 4;
+  const effectiveDayIndex = isLateNight ? (dayIndex - 1 + 7) % 7 : dayIndex;
+  const currentDay = daysOfWeek[effectiveDayIndex];
+  const todayHours = hoursMap[currentDay];
+
+  if (!todayHours) {
+    return null; // No data for today
+  }
+
+  // --- Dynamic timeKeys based on todayHours ---
+  const timeKeys = Object.keys(todayHours);
+
+  // Sort timeKeys properly
+  timeKeys.sort((a, b) => timeKeyToMinutes(a) - timeKeyToMinutes(b));
+
+  // Convert current time to minutes
+  const nowMinutes = hour * 60 + minute;
+
+  // Find the latest timeKey not after now
+  let currentTimeKey = null;
+  for (let i = 0; i < timeKeys.length; i++) {
+    if (timeKeyToMinutes(timeKeys[i]) <= nowMinutes) {
+      currentTimeKey = timeKeys[i];
+    } else {
+      break;
+    }
+  }
+
+  if (!currentTimeKey) {
+    currentTimeKey = timeKeys[0]; // Edge case: before first opening time
+  }
+
+  const hourValue = todayHours[currentTimeKey];
+
+  if (hourValue?.value !== 1) {
+    return 0; // Closed at this time
+  }
+
+  return hourValue?.crowdedness ?? null; // Return occupancy percentage if open
+}
+
+// --- Helper: Convert '7am' or '7:30pm' to minutes past midnight ---
+function timeKeyToMinutes(timeKey: string) {
+  const match = timeKey.match(/^(\d{1,2})(?::(\d{2}))?(am|pm)$/);
+  if (!match) return 0;
+  let [_, hourStr, minuteStr, period] = match;
+  let hour = parseInt(hourStr, 10);
+  const minute = parseInt(minuteStr || '0', 10);
+  if (period === 'pm' && hour !== 12) hour += 12;
+  if (period === 'am' && hour === 12) hour = 0;
+  return hour * 60 + minute;
+}
+
+// --- Helper: Format '7am' or '7:30pm' nicely ---
+function formatTime(timeKey: string) {
+  const match = timeKey.match(/^(\d{1,2})(?::(\d{2}))?(am|pm)$/);
+  if (!match) return timeKey;
+  let [_, hourStr, minuteStr, period] = match;
+  let hour = parseInt(hourStr, 10);
+  let minute = minuteStr ? parseInt(minuteStr, 10) : 0;
+  const periodUpper = period.toUpperCase();
+  return `${hour}:${minute.toString().padStart(2, '0')} ${periodUpper}`;
+}
+
+function formatTimeToCafeFormat(timeKey: string) {
+  const match = timeKey.match(/^(\d{1,2}):(\d{2}) (AM|PM)$/i);
+  if (!match) return timeKey;
+  let [_, hourStr, minuteStr, period] = match;
+  let hour = parseInt(hourStr, 10);
+  if (minuteStr !== '00') {
+    // If minutes are not 00, convert to "7:30am" etc.
+    return `${hour}:${minuteStr}${period.toLowerCase()}`;
+  } else {
+    return `${hour}${period.toLowerCase()}`; // "7am", "4pm"
+  }
+}
 
 const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }) => {
   const [showForm, setShowForm] = useState(false);
@@ -51,6 +318,14 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
   const [loading, setLoading] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
   const [cafe, setCafe] = useState<any>(null);
+
+  const [openStatus, setOpenStatus] = useState<{ statusParts: { text: string; color: string }[] }>({
+    statusParts: []
+  });
+
+  const [openHours, setOpenHours] = useState<{ earliest: string; latest: string } | null>(null);
+  const [crowdedness, setCrowdedness] = useState<number | null>(null);
+  const [occupancyData, setOccupancyData] = useState<{ [day: string]: { hour: string, value: number }[] }>({});
 
   const [user, setUser] = useState<any>(null);
   useEffect(() => {
@@ -63,8 +338,6 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
     })
   }, []);
 
-  // console.log('Current user:', user);
-
   const [activeTab, setActiveTab] = useState<'Menu' | 'Info' | 'Reviews'>('Reviews');
 
   const [tabLayouts, setTabLayouts] = useState<{ [key in 'Menu' | 'Info' | 'Reviews']?: { x: number; width: number } }>({});
@@ -74,6 +347,33 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
       const response = await fetch(`http://localhost:3000/cafes/getByID/${cafeID}`);
       const data = await response.json();
       setCafe(data);
+      const status = getOpenStatusWithTimes(data.hours);
+      setOpenStatus(status);
+      const todayOpenHours = getTodayOpenHours(data.hours);
+      setOpenHours(todayOpenHours);
+      const currentOccupancy = getCurrentOccupancy(data.hours);
+      setCrowdedness(currentOccupancy);
+
+      // --- NEW: Generate occupancy data for all days ---
+      const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const allDaysOccupancy: { [day: string]: { hour: string; value: number }[] } = {};
+
+      daysOfWeek.forEach(day => {
+        const dayHours = data.hours[day];
+        if (dayHours) {
+          const timeKeys = Object.keys(dayHours).sort((a, b) => timeKeyToMinutes(a) - timeKeyToMinutes(b));
+          const filteredHours = timeKeys
+            .filter(timeKey => dayHours[timeKey]?.value === 1)
+            .map(timeKey => ({
+              hour: timeKey,
+              value: dayHours[timeKey].crowdedness ?? 0,
+            }));
+          allDaysOccupancy[day] = filteredHours;
+        }
+      });
+
+      setOccupancyData(allDaysOccupancy);  // 👈 new
+
     } catch (error) {
       console.error('Error fetching cafe info:', error);
       Alert.alert('Error', 'There was a problem fetching cafe information.');
@@ -141,10 +441,6 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
       }
     }
 
-    // console.log('Filtered Good Labels:', filteredGood);
-    // console.log('Filtered Bad Labels:', filteredBad);
-
-
     setGoodLabels(filteredGood)
     setBadLabels(filteredBad)
   }
@@ -170,7 +466,7 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
     specialty: number
   ) => {
     const reviewData = {
-      user: user?.email || 'user123',     // Replace with real user ID if available
+      user: user?.displayName || 'user123',     // Replace with real user ID if available
       userID: user?.uid || 'user123', // Use user ID from auth state
       postID: 'post123',     // Generate or assign postID appropriately
       cafeID,
@@ -220,6 +516,7 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
     });
   };
 
+
   if (showForm) {
     return (
       <View style={{ flex: 1 }}>
@@ -235,9 +532,20 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
       <ScrollView contentContainerStyle={styles.container}>
         {cafe && (
           <>
-            <Pressable onPress={goBack} style={styles.backButton}>
-              <ReturnIcon width={24} height={24} />
-            </Pressable>
+            <View style={styles.headerContainer}>
+              <Pressable onPress={goBack} style={styles.backButton}>
+                <ReturnIcon width={24} height={24} />
+              </Pressable>
+
+              <View style={styles.rightIconsContainer}>
+                <Pressable style={styles.iconButton}>
+                  <PlusIcon width={24} height={24} />
+                </Pressable>
+                <Pressable style={styles.iconButton}>
+                  <FlagIcon width={24} height={24} />
+                </Pressable>
+              </View>
+            </View>
 
             <View style={styles.imageAndInfoContainer}>
               <View style={styles.roundedImageWrapper}>
@@ -259,17 +567,17 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
                 <View style={styles.rating}>
                   <StarRating rating={parseFloat(cafe.ratings['overall']['rating']) || 0} size={20} readOnly />
                 </View>
-                <Text style={styles.cafeAddress}>{cafe.address}</Text>
+                <Text style={styles.cafeAddress}>
+                  {`$ | ${openHours ? `Open from ${openHours.earliest} to ${openHours.latest}` : 'No hours available'}`}
+                </Text>
               </View>
             </View>
-
           </>
         )}
-
-        <TabSelector activeTab={activeTab} setActiveTab={setActiveTab} setTabLayouts={setTabLayouts} />
+        <TabSelector activeTab={activeTab} setActiveTab={setActiveTab} />
         {activeTab === 'Info' && cafe && (
           <View style={{ width: '100%', position: 'relative' }}>
-            <View style={styles.fullTopBorder}>
+            <View>
               {tabLayouts[activeTab] && (
                 <View
                   style={{
@@ -285,6 +593,59 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
               )}
             </View>
             <View style={styles.reviewContentBox}>
+
+              <View style={styles.locationRow}>
+                <LocationIcon width={14} height={17.746} />
+                <Text style={styles.locationText}>
+                  {cafe.address}
+                </Text>
+              </View>
+
+              <View style={styles.separator}></View>
+
+              <View style={styles.locationRow}>
+                <TimeIcon width={18} height={18} />
+                <View>
+                  <Text style={{ flexDirection: 'row', flexWrap: 'wrap', fontSize: 16, marginLeft: 12, }}>
+                    {openStatus.statusParts.map((part, index) => (
+                      <Text key={index} style={[{
+                        color: part.color, fontFamily: 'Manrope', fontSize: 12, fontStyle: 'normal', lineHeight: 22, // space between icon and text
+                      }]}>
+                        {part.text}
+                      </Text>
+                    ))}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.separator}></View>
+
+              <View style={styles.locationRow}>
+                <WebIcon width={24} height={24} />
+                {cafe.website ? (
+                  <Text
+                    style={[styles.locationText, { color: '#3C751E', textDecorationLine: 'underline' }]}
+                    onPress={() => Linking.openURL(cafe.website)}
+                  >
+                    {cafe.website}
+                  </Text>
+                ) : (
+                  <Text style={styles.locationText}>
+                    No website available
+                  </Text>
+                )}
+              </View>
+
+              <View style={styles.separator}></View>
+
+              <View style={styles.locationRow}>
+                <PhoneIcon width={18} height={18} />
+                <Text style={styles.locationText}>
+                  {cafe.phoneNumber || 'No phone number available'}
+                </Text>
+              </View>
+
+              <View style={styles.separator}></View>
               {
                 <View>
                   <Text style={styles.label}>Ammenities</Text>
@@ -300,6 +661,18 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
                       />
                     ))}
                   </View>
+                  <View style={styles.separator} />
+                  <View style={styles.crowdnessContainer}>
+                    <Text style={styles.crowdLabel}>Crowd Levels</Text>
+                    <CrowdednessSlider
+                      crowdedness={crowdedness}>
+                    </CrowdednessSlider>
+                  </View>
+
+                  {occupancyData && (
+                    <CrowdednessGraph occupancyData={occupancyData} />
+                  )}
+
 
                 </View>
               }
@@ -308,7 +681,7 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
         )}
         {activeTab === 'Menu' && (
           <View style={{ width: '100%', position: 'relative' }}>
-            <View style={styles.fullTopBorder}>
+            <View>
               {tabLayouts[activeTab] && (
                 <View
                   style={{
@@ -333,7 +706,7 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
         )}
         {activeTab === 'Reviews' && (
           <View style={{ width: '100%', position: 'relative' }}>
-            <View style={styles.fullTopBorder}>
+            <View>
               {tabLayouts[activeTab] && (
                 <View
                   style={{
@@ -350,7 +723,7 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
             </View>
             <View style={styles.reviewContentBox}>
               <View style={styles.buttonShadowWrapper}>
-                <Pressable onPress={() => setShowForm(true)} style={styles.button}>
+                <Pressable onPress={() => setShowForm(true)} style={styles.buttonReviews}>
                   <Text style={styles.buttonText}>Add a rating ...</Text>
                 </Pressable>
               </View>
@@ -376,9 +749,16 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
                           style={styles.reviewCard}
                           onPress={() => toggleCard(index)}
                         >
+
                           <View style={styles.headerRow}>
-                            <Text style={styles.reviewUser}>{review.user}</Text>
-                            <StarRating rating={rating.overall || 0} size={16} readOnly />
+                            <Image
+                              source={require('../../assets/images/Jenny.png')} // your static image path
+                              style={styles.avatar}
+                            />
+                            <View style={styles.userInfo}>
+                              <Text style={styles.reviewUser}>{review.user}</Text>
+                              <StarRating rating={rating.overall || 0} size={16} color="black" readOnly />
+                            </View>
                           </View>
 
                           <Text style={styles.reviewText}>
@@ -389,22 +769,22 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
                             <View style={styles.expandedContent}>
                               {rating.vibe > 0 && (
                                 <View style={styles.extraHeaderRow}>
-                                  <Text style={styles.reviewUser}>Vibe</Text>
-                                  <StarRating rating={rating.vibe} size={12} readOnly />
+                                  <Text style={[styles.reviewText, { fontWeight: 'bold' }]}>Vibe</Text>
+                                  <StarRating rating={rating.vibe} size={12} color="#000000" readOnly />
                                 </View>
                               )}
 
                               {rating.ammenities > 0 && (
                                 <View style={styles.extraHeaderRow}>
-                                  <Text style={styles.reviewUser}>Amenities</Text>
-                                  <StarRating rating={rating.ammenities} size={12} readOnly />
+                                  <Text style={[styles.reviewText, { fontWeight: 'bold' }]}>Amenities</Text>
+                                  <StarRating rating={rating.ammenities} size={12} color="#000000" readOnly />
                                 </View>
                               )}
 
                               {rating.drinkQuality > 0 && (
                                 <View style={styles.extraHeaderRow}>
-                                  <Text style={styles.reviewUser}>Drink Quality</Text>
-                                  <StarRating rating={rating.drinkQuality} size={12} readOnly />
+                                  <Text style={[styles.reviewText, { fontWeight: 'bold' }]}>Drink Quality</Text>
+                                  <StarRating rating={rating.drinkQuality} size={12} color="#000000" readOnly />
                                 </View>
                               )}
 
@@ -417,29 +797,29 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
 
                               {drinks.coffee > 0 && (
                                 <View style={styles.extraHeaderRow}>
-                                  <Text style={styles.reviewUser}>Coffee</Text>
-                                  <StarRating rating={drinks.coffee} size={12} readOnly />
+                                  <Text style={[styles.reviewText, { fontWeight: 'bold' }]}>Coffee</Text>
+                                  <StarRating rating={drinks.coffee} size={12} color="#000000" readOnly />
                                 </View>
                               )}
 
                               {drinks.matcha > 0 && (
                                 <View style={styles.extraHeaderRow}>
-                                  <Text style={styles.reviewUser}>Matcha</Text>
-                                  <StarRating rating={drinks.matcha} size={12} readOnly />
+                                  <Text style={[styles.reviewText, { fontWeight: 'bold' }]}>Matcha</Text>
+                                  <StarRating rating={drinks.matcha} size={12} color="#000000" readOnly />
                                 </View>
                               )}
 
                               {drinks.tea > 0 && (
                                 <View style={styles.extraHeaderRow}>
-                                  <Text style={styles.reviewUser}>Tea</Text>
-                                  <StarRating rating={drinks.tea} size={12} readOnly />
+                                  <Text style={[styles.reviewText, { fontWeight: 'bold' }]}>Tea</Text>
+                                  <StarRating rating={drinks.tea} size={12} color="#000000" readOnly />
                                 </View>
                               )}
 
                               {drinks.specialty > 0 && (
                                 <View style={styles.extraHeaderRow}>
-                                  <Text style={styles.reviewUser}>Specialty</Text>
-                                  <StarRating rating={drinks.specialty} size={12} readOnly />
+                                  <Text style={[styles.reviewText, { fontWeight: 'bold' }]}>Specialty</Text>
+                                  <StarRating rating={drinks.specialty} size={12} color="#000000" readOnly />
                                 </View>
                               )}
 
@@ -486,7 +866,6 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
 
 
                               <Text style={styles.date}>{getRelativeTime(review.date)}</Text>
-
 
                             </View>
                           )}
@@ -567,11 +946,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#eee',
     padding: 16,
     borderRadius: 20,
-    backgroundColor: '#fff', // Button surface itself
-  },
-  reviewUser: {
-    fontWeight: '600',
-    marginBottom: 4,
+    backgroundColor: '#E2F0DA', // Button surface itself
   },
   reviewText: {
     marginTop: 8,
@@ -587,7 +962,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    marginTop: 6,
   },
   date: {
     marginTop: 10,
@@ -595,10 +969,25 @@ const styles = StyleSheet.create({
     color: '#888',
   },
   headerRow: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start',
-    marginBottom: 6,
+    flexDirection: 'row',
+    alignItems: 'center', // <-- This centers items vertically
+    gap: 8, // RN 0.71+; otherwise use marginRight on avatar
+  },
+  avatar: {
+    width: 45,
+    height: 45,
+    borderRadius: 999, // optional: makes it circular
+    borderColor: "3C751E",
+    borderWidth: 1,
+    marginRight: 10, // fallback if no gap support
+  },
+  userInfo: {
+    justifyContent: 'center',
+  },
+  reviewUser: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4, // small space between name and stars
   },
   extraHeaderRow: {
     flexDirection: 'row',
@@ -632,17 +1021,15 @@ const styles = StyleSheet.create({
   },
   cafeAddress: {
     fontSize: 14,
-    color: '#555',
+    color: "#000000",
     marginTop: 8,
-    marginBottom: 4,
+    fontFamily: 'Inter',
+    fontStyle: 'normal',
+    lineHeight: 22,
   },
   cafeDescription: {
     fontSize: 14,
     color: '#333',
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 16,
   },
   rating: {
     alignItems: 'flex-start',
@@ -662,16 +1049,7 @@ const styles = StyleSheet.create({
   imageAndInfoContainer: {
     marginBottom: 20, // add separation from next section
   },
-  fullTopBorder: {
-    height: 1,
-    backgroundColor: '#ccc',
-    width: '100%',
-  },
   reviewContentBox: {
-    borderWidth: 1,
-    borderTopWidth: 0, // the segmented border handles the top line
-    borderColor: '#ccc',
-    // borderRadius: 8,
     padding: 16,
   },
   labelRow: {
@@ -680,6 +1058,74 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
   },
+  buttonReviews: {
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 9999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E2F0DA', // Button surface itself
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#ccc',
+    width: '100%',
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationText: {
+    fontSize: 12,
+    color: '#000',
+    marginLeft: 12, // space between icon and text
+    flexShrink: 1,  // so the text wraps nicely if it's too long
+    fontFamily: 'Manrope',
+    fontStyle: 'normal',
+    lineHeight: 22,
+  },
+  openStatusText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginTop: 8,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between', // left and right
+    paddingHorizontal: 16,
+    height: 56, // or whatever header height you want
+    backgroundColor: '#fff', // if you need background
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+  },
+  rightIconsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconButton: {
+    padding: 8,
+    marginLeft: 12, // space between the two icons
+  },
+  crowdnessContainer: {
+    alignItems: 'flex-start',
+    width: '100%',
+    paddingVertical: 8, // Optional: space around
+  },
+  crowdLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'left',
+    width: '100%', // <-- important to align with the pill
+    marginBottom: 4,
+  }
+
 });
 
 export default ReviewScreen;

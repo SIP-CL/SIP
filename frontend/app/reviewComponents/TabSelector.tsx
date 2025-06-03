@@ -6,10 +6,10 @@ type TabType = 'Menu' | 'Info' | 'Reviews';
 interface TabSelectorProps {
     activeTab: TabType;
     setActiveTab: (tab: TabType) => void;
-    setTabLayouts: React.Dispatch<React.SetStateAction<{ [key in TabType]?: { x: number; width: number } }>>;
+    // setTabLayouts: React.Dispatch<React.SetStateAction<{ [key in TabType]?: { x: number; width: number } }>>;
 }
 
-const TabSelector: React.FC<TabSelectorProps> = ({ activeTab, setActiveTab, setTabLayouts }) => {
+const TabSelector: React.FC<TabSelectorProps> = ({ activeTab, setActiveTab }) => {
 
     return (
       <View style={styles.tabContainer}>
@@ -17,18 +17,14 @@ const TabSelector: React.FC<TabSelectorProps> = ({ activeTab, setActiveTab, setT
           <Pressable
             key={tab}
             onPress={() => setActiveTab(tab)}
-            onLayout={(e) => {
-                const { x, width } = e.nativeEvent.layout;
-                setTabLayouts(prev => ({ ...prev, [tab]: { x, width } }));
-              }}
             style={[
               styles.tab,
-              activeTab === tab && styles.activeTab
             ]}
           >
-            <Text style={activeTab === tab ? styles.activeTabText : styles.tabText}>
-              {tab}
-            </Text>
+          <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
+            {tab}
+          </Text>
+            {activeTab === tab && <View style={styles.activeUnderline} />}
           </Pressable>
         ))}
       </View>
@@ -36,39 +32,32 @@ const TabSelector: React.FC<TabSelectorProps> = ({ activeTab, setActiveTab, setT
   };
   
  const styles = StyleSheet.create({
-    tabContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        // marginBottom: 20,
-        // borderBottomWidth: 1,
-        // borderBottomColor: '#ccc',
-      },
-      tab: {
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        borderTopLeftRadius: 10,
-        borderTopRightRadius: 10,
-        marginHorizontal: 4,
-        backgroundColor: '#d6e8d2',
-      },
-      activeTab: {
-        backgroundColor: 'transparent',
-        borderRightColor: '#ccc',
-        borderLeftColor: '#ccc',
-        borderTopColor: '#ccc',
-        borderRightWidth: 1,
-        borderLeftWidth: 1,
-        borderTopWidth: 1,
-      },
-      tabText: {
-        color: '#444',
-        fontWeight: '500',
-      },
-      activeTabText: {
-        color: '#000',
-        fontWeight: '700',
-      },
- })
+  tabContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  tabText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  activeTabText: {
+    color: 'green',
+    fontWeight: '700',
+  },
+  activeUnderline: {
+    marginTop: 6,
+    height: 3,
+    width: '60%',
+    backgroundColor: 'green',
+    borderRadius: 2,
+  },
+});
 
 export default TabSelector;

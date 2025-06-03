@@ -37,8 +37,9 @@ export default function YourListScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>Your List</Text>
-
+      {!selectedCafeID && (
+        <Text style={styles.header}>Your List</Text>
+      )}
       {selectedCafeID ? (
         <ReviewScreen
           cafeID={selectedCafeID}

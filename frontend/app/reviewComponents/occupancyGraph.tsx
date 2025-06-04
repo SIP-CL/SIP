@@ -6,22 +6,38 @@ import { Defs, LinearGradient, Stop } from 'react-native-svg';
 
 const screenWidth = Dimensions.get('window').width;
 
-interface OccupancyDataPoint {
-  hour: string;   // e.g., '7am'
-  value: number;  // e.g., 30
-}
+// Helper function to sort times like 7am, 8am, ..., 5pm, 6pm
+const sortHours = (hours: string[]) => {
+  const hourToNumber = (h: string) => {
+    const match = h.match(/^(\d+)(?::(\d+))?(am|pm)$/);
+    if (!match) return 0;
+    let hour = parseInt(match[1]);       // 7
+    let minute = match[2] ? parseInt(match[2]) : 0; // 30 if :30 exists, otherwise 0
+    const ampm = match[3];               // am / pm
+
+    if (ampm === 'pm' && hour !== 12) hour += 12;
+    if (ampm === 'am' && hour === 12) hour = 0;
+
+    return hour * 60 + minute;  // Total minutes since midnight
+  };
+
+  return [...hours].sort((a, b) => hourToNumber(a) - hourToNumber(b));
+};
 
 interface OccupancyChartProps {
   occupancyData: {
-    [day: string]: OccupancyDataPoint[];
+    [day: string]: {
+      [hour: string]: number; // e.g., '7am': 30
+    };
   };
 }
 
 const OccupancyChart: React.FC<OccupancyChartProps> = ({ occupancyData }) => {
-  const availableDays = Object.keys(occupancyData);
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  const availableDays = daysOfWeek.filter((day) => Object.keys(occupancyData).includes(day));
 
   const todayIndex = new Date().getDay();
-  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const today = daysOfWeek[todayIndex];
 
   const [selectedDay, setSelectedDay] = useState(
@@ -29,9 +45,17 @@ const OccupancyChart: React.FC<OccupancyChartProps> = ({ occupancyData }) => {
   );
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
-  const dataForDay = occupancyData[selectedDay] || [];
-  const values = dataForDay.map((d) => d.value);
-  const labels = dataForDay.map((d) => d.hour);
+  const dataForDay = occupancyData[selectedDay] || {};
+
+  // Extract labels (hours) and values
+  const labelsUnsorted = Object.keys(dataForDay);
+  const labels = sortHours(labelsUnsorted);
+
+  const values = labels.map((hour) => {
+    const hourData = dataForDay[hour];
+    return hourData && typeof hourData.crowdedness === 'number' ? hourData.crowdedness : 0;
+  });
+
 
   const Gradient = () => (
     <Defs key={'gradient'}>
@@ -51,10 +75,12 @@ const OccupancyChart: React.FC<OccupancyChartProps> = ({ occupancyData }) => {
     <View style={styles.container}>
       {/* Dropdown */}
       <View style={styles.dropdownWrapper}>
-        <Text style={styles.title}>Projected:</Text>
-        <Pressable style={styles.dropdownButton} onPress={() => setDropdownVisible(true)}>
-          <Text style={styles.dropdownButtonText}>{selectedDay}</Text>
+        <Pressable style={styles.dropdownWrapper} onPress={() => setDropdownVisible(true)}>
+          <Text style={styles.projectedText}>
+            Projected: <Text style={styles.selectedDayText}>{selectedDay}</Text> ⌄
+          </Text>
         </Pressable>
+
       </View>
 
       {/* Modal Dropdown */}
@@ -85,32 +111,50 @@ const OccupancyChart: React.FC<OccupancyChartProps> = ({ occupancyData }) => {
       {/* Chart with Y-axis labels */}
       <View style={styles.chartWithYAxis}>
         <View style={styles.yAxisLabels}>
-          {[100, 75, 50, 25].map((val) => (
+          {[100, 75, 50, 25, 0].map((val) => (
             <Text key={val} style={styles.yAxisLabel}>{val}</Text>
           ))}
         </View>
         <AreaChart
           style={styles.chart}
           data={values}
-          curve={shape.curveNatural}
+          curve={shape.curveMonotoneX}
           svg={{ fill: 'url(#gradientFill)', stroke: '#3C751E', strokeWidth: 2 }}
-          contentInset={{ top: 10, bottom: 10 }}
+          contentInset={{ top: 10, bottom: 0 }}
           gridMin={0}
           gridMax={100}
-          showGrid={false} // <<< removes default grid
+          yMin={0}  // 🔥 Set baseline to 0
+          showGrid={false}
         >
           <Gradient />
         </AreaChart>
+
       </View>
 
       {/* X-Axis Labels */}
       <View style={styles.xAxisLabels}>
-        {labels.map((label, index) => (
-          <Text key={index} style={styles.xAxisLabel}>
-            {label}
-          </Text>
-        ))}
+        {labels.map((label, index) => {
+          // Only show a label if it is every Nth
+          const totalLabels = labels.length;
+          const maxLabels = 6; // 🔥 <- How many you want max on screen, adjust if needed
+          const interval = Math.ceil(totalLabels / maxLabels);
+
+          if (index % interval === 0) {
+            return (
+              <Text key={index} style={styles.xAxisLabel}>
+                {label}
+              </Text>
+            );
+          } else {
+            return (
+              <Text key={index} style={styles.xAxisLabel}>
+                {/* Empty Text to keep spacing consistent */}
+              </Text>
+            );
+          }
+        })}
       </View>
+
     </View>
   );
 };
@@ -151,7 +195,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
-    paddingHorizontal: 16,
   },
   title: {
     fontSize: 14,
@@ -199,6 +242,18 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'center',
   },
+  projectedText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000', // black or dark gray
+  },
+
+  selectedDayText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333', // slightly lighter gray if you want
+  },
+
 });
 
 export default OccupancyChart;

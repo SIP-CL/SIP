@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import ReviewScreen from "../reviewComponents/review"; // ensure this is correctly imported
+import ReviewScreen from "../reviewComponents/Review"; // ensure this is correctly imported
 
 export default function YourListScreen() {
   const [activeTab, setActiveTab] = useState("have tried");

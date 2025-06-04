@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 import Entypo from '@expo/vector-icons/Entypo';
-import Labels from '../reviewComponents/labels';
+import Labels from '../reviewComponents/Labels';
 
 type Cafe = {
   _id: string;

@@ -37,9 +37,7 @@ export default function YourListScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      {!selectedCafeID && (
-        <Text style={styles.header}>Your List</Text>
-      )}
+      {!selectedCafeID && <Text style={styles.header}>Your List</Text>}
       {selectedCafeID ? (
         <ReviewScreen
           cafeID={selectedCafeID}
@@ -198,7 +196,10 @@ export default function YourListScreen() {
                               ? "Your overall rating:"
                               : "What others think:"}{" "}
                             <Text style={styles.star}>★</Text>{" "}
-                            {parseFloat(cafe.ratings['overall']['rating'] || 0).toFixed(1)}/5
+                            {parseFloat(
+                              cafe.ratings["overall"]["rating"] || 0
+                            ).toFixed(1)}
+                            /5
                           </Text>
                         </View>
                       </View>
@@ -325,7 +326,6 @@ const styles = StyleSheet.create({
   filterTab: {
     marginTop: 16,
     paddingBottom: 32,
-    backgroundColor: "#f5fff5",
   },
   sectionTitle: {
     fontSize: 16,

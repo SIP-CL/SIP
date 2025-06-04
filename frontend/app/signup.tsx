@@ -94,6 +94,7 @@ import { auth } from "../firebase/firebaseConfig";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import GoogleIcon from "../assets/images/Google.svg";
 
 export default function SignupScreen() {
   const [name, setName] = useState("");
@@ -130,6 +131,7 @@ export default function SignupScreen() {
         value={name}
         onChangeText={setName}
         style={styles.input}
+        placeholderTextColor="#3F4055"
       />
       <TextInput
         placeholder="phone"
@@ -137,6 +139,7 @@ export default function SignupScreen() {
         onChangeText={setPhone}
         keyboardType="phone-pad"
         style={styles.input}
+        placeholderTextColor="#3F4055"
       />
       <TextInput
         placeholder="email"
@@ -144,6 +147,7 @@ export default function SignupScreen() {
         onChangeText={setEmail}
         autoCapitalize="none"
         style={styles.input}
+        placeholderTextColor="#3F4055"
       />
       <TextInput
         placeholder="password"
@@ -151,6 +155,7 @@ export default function SignupScreen() {
         onChangeText={setPassword}
         secureTextEntry
         style={styles.input}
+        placeholderTextColor="#3F4055"
       />
 
       {errorMsg ? <Text style={styles.error}>{errorMsg}</Text> : null}
@@ -172,7 +177,7 @@ export default function SignupScreen() {
       </View>
 
       <TouchableOpacity style={styles.googleButton}>
-        <Ionicons name="logo-google" size={18} style={styles.googleIcon} />
+        <GoogleIcon style={styles.googleIcon} />
         <Text style={styles.googleButtonText}>Get Started With Google</Text>
       </TouchableOpacity>
 
@@ -205,7 +210,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   input: {
-    backgroundColor: "#e6e6e6",
+    backgroundColor: "#E6E6E6",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,

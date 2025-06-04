@@ -12,6 +12,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "expo-router";
 import { useAuth } from "../firebase/authContext";
 import { Ionicons } from "@expo/vector-icons";
+import GoogleIcon from "../assets/images/Google.svg";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -53,7 +54,7 @@ export default function LoginScreen() {
         onChangeText={setEmail}
         autoCapitalize="none"
         style={styles.input}
-        placeholderTextColor="#444"
+        placeholderTextColor="#3F4055"
       />
       <TextInput
         placeholder="password"
@@ -61,7 +62,7 @@ export default function LoginScreen() {
         onChangeText={setPassword}
         secureTextEntry
         style={styles.input}
-        placeholderTextColor="#444"
+        placeholderTextColor="#3F4055"
       />
 
       {errorMsg ? <Text style={styles.error}>{errorMsg}</Text> : null}
@@ -77,7 +78,8 @@ export default function LoginScreen() {
       </View>
 
       <TouchableOpacity style={styles.googleButton}>
-        <Ionicons name="logo-google" size={18} style={styles.googleIcon} />
+        {/* <Ionicons name="logo-google" size={18} style={styles.googleIcon} /> */}
+        <GoogleIcon style={styles.googleIcon} />
         <Text style={styles.googleButtonText}>Continue With Google</Text>
       </TouchableOpacity>
 
@@ -110,7 +112,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   input: {
-    backgroundColor: "#e6e6e6",
+    backgroundColor: "#E6E6E6",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,

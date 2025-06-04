@@ -6,6 +6,10 @@ import { Pressable } from "react-native";
 import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
+import HomeIcon from "../../assets/images/home.svg";
+import ProfileIcon from "../../assets/images/profile.svg";
+import FeedIcon from "../../assets/images/feed.svg";
+import ListIcon from "../../assets/images/list.svg";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
@@ -21,31 +25,46 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+        tabBarActiveTintColor: "#3C751E",
         // Disable the static render of the header on web
         // to prevent a hydration error in React Navigation v6.
         headerShown: false,
       }}
     >
       <Tabs.Screen
-        name="login"
+        name="Home"
         options={{
-          title: "login",
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: "Home",
+          tabBarIcon: ({ color }) => (
+            <HomeIcon width={24} height={24} fill="white" />
+          ),
         }}
       />
       <Tabs.Screen
-        name="listings"
+        name="Feed"
         options={{
-          title: "listings",
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: "Feed",
+          tabBarIcon: ({ color }) => (
+            <FeedIcon width={24} height={24} fill="white" />
+          ),
         }}
       />
       <Tabs.Screen
-        name="feed"
+        name="List"
         options={{
-          title: "feed",
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: "List",
+          tabBarIcon: ({ color }) => (
+            <ListIcon width={24} height={24} fill="white" />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color }) => (
+            <ProfileIcon width={24} height={24} fill="white" />
+          ),
         }}
       />
     </Tabs>

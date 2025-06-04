@@ -3,8 +3,8 @@ import { SafeAreaView, View, Text, TextInput, Pressable, StyleSheet } from 'reac
 import StarRating from './StarRating';
 import AddPhotos from '../../assets/images/Camera.svg';
 import CancelIcon from '../../assets/images/Close_LG.svg';
-import Labels from './labels';
-import RatingSlider from './drinkRatingSlider'
+import Labels from './Labels';
+import RatingSlider from './DrinkRatingSystem'
 
 
 type Props = {

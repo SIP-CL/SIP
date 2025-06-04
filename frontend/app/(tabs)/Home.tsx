@@ -5,7 +5,7 @@ import styles from "../feedComponents/styles";
 import CafeCollection from "../feedComponents/CafeCollection";
 import TopCafes from "../feedComponents/TopCafes";
 import Feather from "@expo/vector-icons/Feather";
-import ReviewScreen from "../reviewComponents/review";
+import ReviewScreen from "../reviewComponents/Review";
 import SearchScreen from "../feedComponents/search";
 type Cafe = {
   _id: string;

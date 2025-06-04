@@ -3,8 +3,11 @@ import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient'; // Ensure expo-linear-gradient is installed
 
 const CrowdednessPill = ({ crowdedness }) => {
-  // Safeguard: minimum width to avoid disappearing at 0%
   const barWidth = crowdedness > 0 ? `${crowdedness}%` : '2%';
+
+  // Gradient colors
+  const gradientColors = ['#3C751E', '#E3A72F', '#E6725A'];
+  const borderColor = gradientColors[gradientColors.length - 1]; // Last color in gradient
 
   return (
     <View style={styles.container}>
@@ -14,11 +17,11 @@ const CrowdednessPill = ({ crowdedness }) => {
         Capacity
       </Text>
 
-      {/* Bar */}
-      <View style={styles.barBackground}>
+      {/* Bar with Border */}
+      <View style={[styles.barBackground, { borderColor: borderColor, borderWidth: 2 }]}>
         {/* Filled Bar */}
         <LinearGradient
-          colors={['#3C751E', '#E3A72F', '#E6725A']} // Green → Yellow → Red
+          colors={gradientColors}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={[styles.filledBar, { width: barWidth }]}
@@ -31,7 +34,21 @@ const CrowdednessPill = ({ crowdedness }) => {
   );
 };
 
+
 const styles = StyleSheet.create({
+  filledBar: {
+    height: '100%',
+    borderRadius: 50,
+  },
+  barBackground: {
+    width: '100%',
+    height: 20,
+    borderRadius: 50,
+    backgroundColor: '#eee',
+    overflow: 'hidden',
+    marginBottom: 8,
+    // NOW dynamic borderColor and borderWidth will be added via inline style
+  },
   container: {
     // paddingHorizontal: 20,
     paddingVertical: 10,
@@ -58,10 +75,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#eee',
     overflow: 'hidden',
     marginBottom: 8,
-  },
-  filledBar: {
-    height: '100%',
-    borderRadius: 50,
   },
   percentageText: {
     fontSize: 16,

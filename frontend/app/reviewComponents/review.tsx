@@ -11,8 +11,8 @@ import {
   Image,
   Linking
 } from 'react-native';
-import ReviewForm from '../reviewComponents/ReviewForm';
-import StarRating from '../reviewComponents/StarRating';
+import ReviewForm from './ReviewForm';
+import StarRating from './StarRating';
 import ReturnIcon from '../../assets/images/Group.svg'
 import LocationIcon from '../../assets/images/location.svg';
 import PhoneIcon from '../../assets/images/phone.svg';
@@ -24,9 +24,207 @@ import FlagIcon from '../../assets/images/flag.svg';
 import { auth } from '../../firebase/firebaseConfig'
 import { onAuthStateChanged } from 'firebase/auth';
 import { on } from 'events';
-import Labels from './labels';
-import CrowdednessSlider from './crowdedness';
-import CrowdednessGraph from './occupancyGraph';
+import Labels from './Labels';
+import CrowdednessSlider from './Crowdedness';
+import CrowdednessGraph from './OccupancyGraph';
+import MenuSlider from './MenuSlider';
+import ItemSlider from './ItemSlider';
+
+const menuPhotos = [
+  require('../../assets/images/menu images/menu1.png'),
+  require('../../assets/images/menu images/menu2.png'),
+  require('../../assets/images/menu images/menu3.png'),
+]
+
+const itemPhotos = [
+  require('../../assets/images/menu images/item1.png'),
+  require('../../assets/images/menu images/item2.png'),
+  require('../../assets/images/menu images/item3.png'),
+]
+
+const getOpenStatusWithTimes = (hoursMap: Record<string, string>) => {
+  const now = new Date();
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  let dayIndex = now.getDay();
+  let hour = now.getHours();
+  let minute = now.getMinutes();
+  const nowMinutes = hour * 60 + minute;
+
+  const isLateNight = hour < 4;
+  const effectiveDayIndex = isLateNight ? (dayIndex - 1 + 7) % 7 : dayIndex;
+  const currentDay = daysOfWeek[effectiveDayIndex];
+
+  const normalizedHoursMap = Object.fromEntries(
+    Object.entries(hoursMap).map(([day, hours]) => [day.toLowerCase(), hours])
+  );
+
+  const todayHours = normalizedHoursMap[currentDay.toLowerCase()];
+
+  if (!todayHours || typeof todayHours !== 'string' || todayHours.toLowerCase() === 'closed') {
+    return findNextOpening(normalizedHoursMap, effectiveDayIndex, daysOfWeek); // <<<< pass normalized map
+  }
+
+  const normalizedTodayHours = todayHours.replace(/\u2013|\u2011/g, '-').replace(/\s+/g, ' ').trim();
+  const [openTime, closeTime] = normalizedTodayHours.split('-').map(time => time.trim());
+
+  const openMinutes = parseTimeToMinutes(openTime);
+  const closeMinutes = parseTimeToMinutes(closeTime);
+
+  let isOpenNow = false;
+  if (closeMinutes > openMinutes) {
+    isOpenNow = nowMinutes >= openMinutes && nowMinutes < closeMinutes;
+  } else {
+    isOpenNow = nowMinutes >= openMinutes || nowMinutes < closeMinutes;
+  }
+
+  if (isOpenNow) {
+    return {
+      statusParts: [
+        { text: 'Open now', color: '#3C751E' },
+        { text: ` until ${closeTime}`, color: '#000000' }
+      ]
+    };
+  } else {
+    return findNextOpening(normalizedHoursMap, effectiveDayIndex, daysOfWeek); // <<<< pass normalized map
+  }
+};
+
+function findNextOpening(hoursMap: Record<string, string>, startDayIndex: number, daysOfWeek: string[]) {
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+  for (let j = 0; j <= 7; j++) {
+    const nextDayIndex = (startDayIndex + j) % 7;
+    const nextDay = daysOfWeek[nextDayIndex];
+    const nextDayHours = hoursMap[nextDay.toLowerCase()]; // use .toLowerCase()
+
+    if (nextDayHours && typeof nextDayHours === 'string' && nextDayHours.toLowerCase() !== 'closed') {
+      const normalizedHours = nextDayHours.replace(/\u2013|\u2011/g, '-').replace(/\s+/g, ' ').trim();
+      const [nextOpenTime, nextCloseTime] = normalizedHours.split('-').map(time => time.trim());
+      const openMinutes = parseTimeToMinutes(nextOpenTime);
+      const closeMinutes = parseTimeToMinutes(nextCloseTime);
+
+      if (j === 0) {
+        if (nowMinutes < openMinutes) {
+          return {
+            statusParts: [
+              { text: 'Closed now', color: '#E6725A' },
+              { text: `, opens at ${nextOpenTime}`, color: '#000000' }
+            ]
+          };
+        }
+        // else skip today
+      } else {
+        return {
+          statusParts: [
+            { text: 'Closed now', color: '#E6725A' },
+            { text: `, opens at ${nextOpenTime} on ${nextDay}`, color: '#000000' }
+          ]
+        };
+      }
+    }
+  }
+
+  return {
+    statusParts: [
+      { text: 'Closed for the week', color: '#E6725A' }
+    ]
+  };
+}
+
+function parseTimeToMinutes(timeStr: string): number {
+  const [time, period] = timeStr.split(' ');
+  let [hour, minute] = time.split(':').map(Number);
+  if (minute === undefined) minute = 0;
+  if (period.toLowerCase() === 'pm' && hour !== 12) {
+    hour += 12;
+  }
+  if (period.toLowerCase() === 'am' && hour === 12) {
+    hour = 0;
+  }
+  return hour * 60 + minute;
+}
+
+function getTodayOpenHours(hoursMap: Record<string, string>) {
+  const now = new Date();
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const dayIndex = now.getDay();
+  const currentDay = daysOfWeek[dayIndex];
+
+  const todayHours = hoursMap[currentDay];
+
+  if (!todayHours || typeof todayHours !== 'string' || todayHours.toLowerCase() === 'closed') {
+    return null; // Closed today or no data
+  }
+
+  // Only normalize dashes
+  const normalizedTodayHours = todayHours.replace(/\u2013|\u2011/g, '-'); // normalize en dash or non-breaking hyphen
+
+  // Show split before mapping
+  const splitResult = normalizedTodayHours.split(/\s*-\s*/);
+
+  if (splitResult.length !== 2) {
+    console.error('Bad split format — not 2 parts!');
+    return null;
+  }
+
+  const [openTime, closeTime] = splitResult.map(time => time.trim());
+
+  return {
+    earliest: openTime,
+    latest: closeTime
+  };
+}
+
+function getCurrentOccupancy(
+  crowdednessMap: Record<string, Record<string, { crowdedness: number | string }>>,
+  time: Date
+): number {
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const currentDay = daysOfWeek[time.getDay()];
+
+  const todayMap = crowdednessMap[currentDay];
+  if (!todayMap) {
+    return 0; // No data for today
+  }
+
+  // Check if todayMap has any `:30` keys
+  const hasHalfHourSlots = Object.keys(todayMap).some((key) => key.includes(':30'));
+
+  const hour = time.getHours();
+  const minute = time.getMinutes();
+
+  const hourIn12Format = hour % 12 === 0 ? 12 : hour % 12;
+  const amPm = hour >= 12 ? 'pm' : 'am';
+
+  let key: string;
+
+  if (hasHalfHourSlots) {
+    // Use :30 if minutes >= 30
+    key = minute < 30 ? `${hourIn12Format}${amPm}` : `${hourIn12Format}:30${amPm}`;
+  } else {
+    // Only full hours available
+    key = `${hourIn12Format}${amPm}`;
+  }
+
+  const hourEntry = todayMap[key];
+
+  if (!hourEntry) {
+    return 0;
+  }
+
+  const crowdednessValue = hourEntry.crowdedness;
+
+  // If it's a string like "40%", remove the percent sign
+  if (typeof crowdednessValue === 'string') {
+    const numberOnly = parseFloat(crowdednessValue.replace('%', '').trim());
+    return isNaN(numberOnly) ? 0 : numberOnly;
+  }
+
+  // If it's already a number
+  return crowdednessValue;
+}
 
 const getRelativeTime = (dateString: string) => {
   const now = new Date();
@@ -50,265 +248,6 @@ const getRelativeTime = (dateString: string) => {
   }
   return 'Just now';
 };
-const getOpenStatusWithTimes = (hoursMap: any) => {
-  const now = new Date();
-  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-  let dayIndex = now.getDay();
-  let hour = now.getHours();
-  let minute = now.getMinutes();
-
-  // Late Night Handling (shift 12am-3am back to the previous day)
-  const isLateNight = hour < 4;
-  const effectiveDayIndex = isLateNight ? (dayIndex - 1 + 7) % 7 : dayIndex;
-  const currentDay = daysOfWeek[effectiveDayIndex];
-  const todayHours = hoursMap[currentDay];
-
-  if (!todayHours) {
-    return {
-      statusParts: [
-        { text: 'Closed today', color: '#E6725A' }
-      ]
-    };
-  }
-
-  // --- Dynamic timeKeys based on todayHours ---
-  const timeKeys = Object.keys(todayHours);
-
-  // Sort timeKeys properly (12am, 12:30am, 1am, 1:30am, ...)
-  timeKeys.sort((a, b) => timeKeyToMinutes(a) - timeKeyToMinutes(b));
-
-  // --- Find the current timeKey ---
-  const nowMinutes = hour * 60 + minute;
-  let currentTimeKey = null;
-  for (let i = 0; i < timeKeys.length; i++) {
-    if (timeKeyToMinutes(timeKeys[i]) <= nowMinutes) {
-      currentTimeKey = timeKeys[i];
-    } else {
-      break;
-    }
-  }
-
-  if (!currentTimeKey) {
-    currentTimeKey = timeKeys[0];
-  }
-
-  const hourValue = todayHours[currentTimeKey];
-  const isOpenNow = hourValue?.value === 1;
-
-  if (isOpenNow) {
-    // Find when it closes today
-    for (let i = timeKeys.indexOf(currentTimeKey) + 1; i < timeKeys.length; i++) {
-      const nextHourValue = todayHours[timeKeys[i]];
-      const nextOpen = nextHourValue?.value === 1;
-      if (!nextOpen) {
-        return {
-          statusParts: [
-            { text: 'Open', color: '#3C751E' },
-            { text: ` until ${formatTime(timeKeys[i])}`, color: '#000000' }
-          ]
-        };
-      }
-    }
-    return {
-      statusParts: [
-        { text: 'Open', color: '#3C751E' },
-        { text: ' now', color: '#000000' }
-      ]
-    };
-  } else {
-    // Find next open time today
-    for (let i = timeKeys.indexOf(currentTimeKey) + 1; i < timeKeys.length; i++) {
-      const nextHourValue = todayHours[timeKeys[i]];
-      const nextOpen = nextHourValue?.value === 1;
-      if (nextOpen) {
-        return {
-          statusParts: [
-            { text: 'Closed now', color: '#E6725A' },
-            { text: `, opens at ${formatTime(timeKeys[i])}`, color: '#000000' }
-          ]
-        };
-      }
-    }
-    // Search next days
-    for (let j = 1; j <= 7; j++) {
-      const nextDayIndex = (effectiveDayIndex + j) % 7;
-      const nextDay = daysOfWeek[nextDayIndex];
-      const nextDayHours = hoursMap[nextDay];
-      if (nextDayHours) {
-        const nextTimeKeys = Object.keys(nextDayHours).sort((a, b) => timeKeyToMinutes(a) - timeKeyToMinutes(b));
-        for (const key of nextTimeKeys) {
-          const nextHourValue = nextDayHours[key];
-          const nextOpen = nextHourValue?.value === 1;
-          if (nextOpen) {
-            return {
-              statusParts: [
-                { text: 'Closed now', color: '#E6725A' },
-                { text: `, opens at ${formatTime(key)} on ${nextDay}`, color: '#000000' }
-              ]
-            };
-          }
-        }
-      }
-    }
-    return {
-      statusParts: [
-        { text: 'Closed for the week', color: '#E6725A' }
-      ]
-    };
-  }
-};
-
-function getTodayOpenHours(hoursMap: any) {
-  const now = new Date();
-  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  let dayIndex = now.getDay();
-  const currentDay = daysOfWeek[dayIndex];
-  const nextDay = daysOfWeek[(dayIndex + 1) % 7];
-
-  const todayHours = hoursMap[currentDay];
-  const nextDayHours = hoursMap[nextDay];
-
-  if (!todayHours) {
-    return null;
-  }
-
-  const todayTimeKeys = Object.keys(todayHours).sort((a, b) => timeKeyToMinutes(a) - timeKeyToMinutes(b));
-
-  // Filter only times after 4:00 AM for *earliest* search
-  const filteredTimesForEarliest = todayTimeKeys.filter((key) => {
-    const minutes = timeKeyToMinutes(key);
-    return minutes >= 4 * 60; // 4:00 AM = 240 minutes
-  });
-
-  // Find first time where value is 1 (open)
-  const openTimesToday = filteredTimesForEarliest.filter((key) => {
-    const val = todayHours[key];
-    return val?.value === 1;
-  });
-
-  if (openTimesToday.length === 0) {
-    return null;
-  }
-
-  const earliest = openTimesToday[0];
-
-  // For latest time, check today's open hours and tomorrow's early hours (0am to 3am)
-  const lateTimesToday = todayTimeKeys.filter((key) => {
-    const val = todayHours[key];
-    return val?.value === 1;
-  });
-
-  let lateTimesNextDay: string[] = [];
-  if (nextDayHours) {
-    const nextDayTimeKeys = Object.keys(nextDayHours).sort((a, b) => timeKeyToMinutes(a) - timeKeyToMinutes(b));
-
-    // Only consider early morning times (12am–3am)
-    lateTimesNextDay = nextDayTimeKeys.filter((key) => {
-      const minutes = timeKeyToMinutes(key);
-      return minutes < 4 * 60 && nextDayHours[key]?.value === 1;
-    });
-  }
-
-  const allLateTimes = [...lateTimesToday, ...lateTimesNextDay];
-
-  if (allLateTimes.length === 0) {
-    return null;
-  }
-
-  const latest = allLateTimes[allLateTimes.length - 1];
-
-  return {
-    earliest: formatTime(earliest),
-    latest: formatTime(latest)
-  };
-}
-
-function getCurrentOccupancy(hoursMap: any): number | null {
-  const now = new Date();
-  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-  let dayIndex = now.getDay();
-  let hour = now.getHours();
-  let minute = now.getMinutes();
-
-  // Late Night Handling (shift 12am-3am back to the previous day)
-  const isLateNight = hour < 4;
-  const effectiveDayIndex = isLateNight ? (dayIndex - 1 + 7) % 7 : dayIndex;
-  const currentDay = daysOfWeek[effectiveDayIndex];
-  const todayHours = hoursMap[currentDay];
-
-  if (!todayHours) {
-    return null; // No data for today
-  }
-
-  // --- Dynamic timeKeys based on todayHours ---
-  const timeKeys = Object.keys(todayHours);
-
-  // Sort timeKeys properly
-  timeKeys.sort((a, b) => timeKeyToMinutes(a) - timeKeyToMinutes(b));
-
-  // Convert current time to minutes
-  const nowMinutes = hour * 60 + minute;
-
-  // Find the latest timeKey not after now
-  let currentTimeKey = null;
-  for (let i = 0; i < timeKeys.length; i++) {
-    if (timeKeyToMinutes(timeKeys[i]) <= nowMinutes) {
-      currentTimeKey = timeKeys[i];
-    } else {
-      break;
-    }
-  }
-
-  if (!currentTimeKey) {
-    currentTimeKey = timeKeys[0]; // Edge case: before first opening time
-  }
-
-  const hourValue = todayHours[currentTimeKey];
-
-  if (hourValue?.value !== 1) {
-    return 0; // Closed at this time
-  }
-
-  return hourValue?.crowdedness ?? null; // Return occupancy percentage if open
-}
-
-// --- Helper: Convert '7am' or '7:30pm' to minutes past midnight ---
-function timeKeyToMinutes(timeKey: string) {
-  const match = timeKey.match(/^(\d{1,2})(?::(\d{2}))?(am|pm)$/);
-  if (!match) return 0;
-  let [_, hourStr, minuteStr, period] = match;
-  let hour = parseInt(hourStr, 10);
-  const minute = parseInt(minuteStr || '0', 10);
-  if (period === 'pm' && hour !== 12) hour += 12;
-  if (period === 'am' && hour === 12) hour = 0;
-  return hour * 60 + minute;
-}
-
-// --- Helper: Format '7am' or '7:30pm' nicely ---
-function formatTime(timeKey: string) {
-  const match = timeKey.match(/^(\d{1,2})(?::(\d{2}))?(am|pm)$/);
-  if (!match) return timeKey;
-  let [_, hourStr, minuteStr, period] = match;
-  let hour = parseInt(hourStr, 10);
-  let minute = minuteStr ? parseInt(minuteStr, 10) : 0;
-  const periodUpper = period.toUpperCase();
-  return `${hour}:${minute.toString().padStart(2, '0')} ${periodUpper}`;
-}
-
-function formatTimeToCafeFormat(timeKey: string) {
-  const match = timeKey.match(/^(\d{1,2}):(\d{2}) (AM|PM)$/i);
-  if (!match) return timeKey;
-  let [_, hourStr, minuteStr, period] = match;
-  let hour = parseInt(hourStr, 10);
-  if (minuteStr !== '00') {
-    // If minutes are not 00, convert to "7:30am" etc.
-    return `${hour}:${minuteStr}${period.toLowerCase()}`;
-  } else {
-    return `${hour}${period.toLowerCase()}`; // "7am", "4pm"
-  }
-}
 
 const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }) => {
   const [showForm, setShowForm] = useState(false);
@@ -325,7 +264,6 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
 
   const [openHours, setOpenHours] = useState<{ earliest: string; latest: string } | null>(null);
   const [crowdedness, setCrowdedness] = useState<number | null>(null);
-  const [occupancyData, setOccupancyData] = useState<{ [day: string]: { hour: string, value: number }[] }>({});
 
   const [user, setUser] = useState<any>(null);
   useEffect(() => {
@@ -351,28 +289,8 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
       setOpenStatus(status);
       const todayOpenHours = getTodayOpenHours(data.hours);
       setOpenHours(todayOpenHours);
-      const currentOccupancy = getCurrentOccupancy(data.hours);
+      const currentOccupancy = getCurrentOccupancy(data.occupancy, new Date());
       setCrowdedness(currentOccupancy);
-
-      // --- NEW: Generate occupancy data for all days ---
-      const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      const allDaysOccupancy: { [day: string]: { hour: string; value: number }[] } = {};
-
-      daysOfWeek.forEach(day => {
-        const dayHours = data.hours[day];
-        if (dayHours) {
-          const timeKeys = Object.keys(dayHours).sort((a, b) => timeKeyToMinutes(a) - timeKeyToMinutes(b));
-          const filteredHours = timeKeys
-            .filter(timeKey => dayHours[timeKey]?.value === 1)
-            .map(timeKey => ({
-              hour: timeKey,
-              value: dayHours[timeKey].crowdedness ?? 0,
-            }));
-          allDaysOccupancy[day] = filteredHours;
-        }
-      });
-
-      setOccupancyData(allDaysOccupancy);  // 👈 new
 
     } catch (error) {
       console.error('Error fetching cafe info:', error);
@@ -444,8 +362,6 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
     setGoodLabels(filteredGood)
     setBadLabels(filteredBad)
   }
-
-
   useEffect(() => {
     fetchCafeInfo();
     fetchReviews();
@@ -669,10 +585,7 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
                     </CrowdednessSlider>
                   </View>
 
-                  {occupancyData && (
-                    <CrowdednessGraph occupancyData={occupancyData} />
-                  )}
-
+                  <CrowdednessGraph occupancyData={cafe.occupancy} />
 
                 </View>
               }
@@ -697,12 +610,44 @@ const ReviewScreen = ({ cafeID, goBack }: { cafeID: string, goBack: () => void }
               )}
             </View>
             <View style={styles.reviewContentBox}>
-              {/* <View style={styles.cafeInfo}>
-                <Text style={styles.label}>Menu:</Text>
-                <Text style={styles.cafeDescription}>Menu items will be displayed here.</Text>
-              </View> */}
+                <View style={styles.menuRow}>
+                  {cafe.website ? (
+                    <Text style={styles.menuWebsite}>
+                      <Text style={styles.menuText}>Website   </Text>
+                      <Text
+                        style={{ color: '#3C751E', textDecorationLine: 'underline' }}
+                        onPress={() => Linking.openURL(cafe.website)}
+                      >
+                        {cafe.website}
+                      </Text>
+                    </Text>
+                  ) : (
+                    <Text style={styles.menuWebsite}>
+                      No website available
+                    </Text>
+                  )}
+                  <WebIcon width={24} height={24} />
+                </View>
+                <View style={styles.separator}></View>
+                <View style = {styles.menuRow}>
+                  <Text style={[styles.menuText]}>View Menu</Text>
+                  <Pressable onPress={() => {}}>
+                    <Text style={styles.menuButton}>
+                      add picture
+                    </Text>
+                  </Pressable>
+                </View>
+                <MenuSlider photos={menuPhotos} />
+                <View style={styles.separator}></View>
+                <Text style={[styles.menuText]}>Top Items</Text>
+                <ItemSlider photos={itemPhotos} 
+                  items={["Vietnamese Iced Coffee", "Bonsai Latte", "Dirty Taro Latte"]}
+                  prices={[7.5, 7.5, 7.5]}
+                  recommendationCount={[10, 6, 5]}
+                 />
+              </View>
             </View>
-          </View>
+
         )}
         {activeTab === 'Reviews' && (
           <View style={{ width: '100%', position: 'relative' }}>
@@ -1124,8 +1069,37 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     width: '100%', // <-- important to align with the pill
     marginBottom: 4,
+  },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between', // <-- important
+    width: '100%',
+  },
+  menuWebsite: {
+    fontSize: 12,
+    color: '#333',
+    flexShrink: 1, // <-- Allow text to wrap or shrink if necessary
+    fontFamily: 'Manrope',
+    fontStyle: 'normal',
+    lineHeight: 22,
+  },
+  menuText: {
+    fontSize: 16,
+    color: '#333',
+    flexShrink: 1, // <-- Allow text to wrap or shrink if necessary
+    fontFamily: 'Manrope',
+    fontStyle: 'normal',
+    lineHeight: 22,
+    fontWeight: '600',
+  },
+  menuButton: {
+    fontFamily: 'Manrope',
+    fontStyle: 'normal',
+    lineHeight: 22,
+    fontSize: 12,
+    color: '#3C751E',
   }
-
 });
 
 export default ReviewScreen;

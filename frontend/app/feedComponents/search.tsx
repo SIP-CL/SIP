@@ -1,8 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
-import Feather from '@expo/vector-icons/Feather';
-import Entypo from '@expo/vector-icons/Entypo';
-import Labels from '../reviewComponents/Labels';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  TouchableOpacity,
+  SafeAreaView,
+  StyleSheet,
+} from "react-native";
+import Feather from "@expo/vector-icons/Feather";
+import Entypo from "@expo/vector-icons/Entypo";
+import Labels from "../reviewComponents/Labels";
 
 type Cafe = {
   _id: string;
@@ -22,22 +30,22 @@ type Props = {
 };
 
 export default function SearchScreen({ goBack, onCafeSelect }: Props) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<Cafe[]>([]);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
 
   const availableFilters = [
-    'Study Spot',
-    'Pastries',
-    'Late-night',
-    'Comfy Seats',
-    'Pet Friendly',
-    'Good Music',
-    'Outlets',
-    'Free Wifi',
-    'Group Friendly',
-    'Good Service',
-    'Natural Light',
+    "Study Spot",
+    "Pastries",
+    "Late-night",
+    "Comfy Seats",
+    "Pet Friendly",
+    "Good Music",
+    "Outlets",
+    "Free Wifi",
+    "Group Friendly",
+    "Good Service",
+    "Natural Light",
   ];
 
   const toggleFilter = (label: string) => {
@@ -60,7 +68,7 @@ export default function SearchScreen({ goBack, onCafeSelect }: Props) {
         const data = await res.json();
         setResults(data);
       } catch (err) {
-        console.error('Search error:', err);
+        console.error("Search error:", err);
       }
     };
 
@@ -71,14 +79,22 @@ export default function SearchScreen({ goBack, onCafeSelect }: Props) {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
         <View style={styles.topRow}>
-          <TouchableOpacity onPress={goBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <TouchableOpacity
+            onPress={goBack}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
             <Feather name="arrow-left" size={24} />
           </TouchableOpacity>
           <Text style={styles.title}>Search</Text>
         </View>
 
         <View style={styles.searchBar}>
-          <Feather name="search" size={20} color="#555" style={{ marginRight: 8 }} />
+          <Feather
+            name="search"
+            size={20}
+            color="#555"
+            style={{ marginRight: 8 }}
+          />
           <TextInput
             style={styles.input}
             placeholder="Search for a cafe..."
@@ -116,9 +132,14 @@ export default function SearchScreen({ goBack, onCafeSelect }: Props) {
             <Text style={styles.resultName}>{cafe.name}</Text>
             <Text style={styles.resultDetails}>{cafe.address}</Text>
             <View style={styles.ratingRow}>
-              <Entypo name="star-outlined" size={15} color="black" style={{ marginRight: 4 }} />
+              <Entypo
+                name="star-outlined"
+                size={15}
+                color="black"
+                style={{ marginRight: 4 }}
+              />
               <Text style={styles.resultDetails}>
-                {cafe.ratings?.overall?.rating.toFixed(1) ?? 'N/A'} (
+                {cafe.ratings?.overall?.rating.toFixed(1) ?? "N/A"} (
                 {cafe.ratings?.overall?.count ?? 0})
               </Text>
             </View>
@@ -132,26 +153,26 @@ export default function SearchScreen({ goBack, onCafeSelect }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
 
   topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingTop: 16,
     marginBottom: 12,
   },
   title: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
     marginLeft: 12,
   },
 
   searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#e5e5e5',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#e5e5e5",
     marginHorizontal: 16,
     borderRadius: 999,
     paddingHorizontal: 16,
@@ -161,19 +182,19 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#000',
+    color: "#000",
   },
 
   filterContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
   },
 
   noResultsText: {
-    fontStyle: 'italic',
-    color: '#999',
-    textAlign: 'center',
+    fontStyle: "italic",
+    color: "#999",
+    textAlign: "center",
     marginTop: 16,
   },
 
@@ -181,19 +202,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
   },
   resultName: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 16,
   },
   resultDetails: {
-    color: '#555',
+    color: "#555",
     fontSize: 14,
   },
   ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 4,
   },
 });

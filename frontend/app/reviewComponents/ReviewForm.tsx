@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
-import { SafeAreaView, View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
-import StarRating from './StarRating';
-import AddPhotos from '../../assets/images/Camera.svg';
-import CancelIcon from '../../assets/images/Close_LG.svg';
-import Labels from './Labels';
-import RatingSlider from './DrinkRatingSystem'
-
+import React, { useState } from "react";
+import {
+  SafeAreaView,
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  StyleSheet,
+} from "react-native";
+import StarRating from "./StarRating";
+import AddPhotos from "../../assets/images/Camera.svg";
+import CancelIcon from "../../assets/images/Close_LG.svg";
+import Labels from "./Labels";
+import RatingSlider from "./DrinkRatingSystem";
 
 type Props = {
   onSubmit: (
@@ -30,10 +36,10 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, onCancel, cafeName }) => {
   const [drinkQuality, setDrinkQuality] = useState<number>(0);
   const [vibe, setVibe] = useState<number>(0);
   const [ammenities, setAmmenities] = useState<number>(0);
-  
-  const [cafeComments, setCafeComments] = useState<string>('');
+
+  const [cafeComments, setCafeComments] = useState<string>("");
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
-  const [drinkReccomendations, setDrinkReccomendations] = useState<string>('');
+  const [drinkReccomendations, setDrinkReccomendations] = useState<string>("");
 
   const [coffee, setCoffee] = useState<number>(0);
   const [matcha, setMatcha] = useState<number>(0);
@@ -58,11 +64,11 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, onCancel, cafeName }) => {
   const handleSpecialtyChange = (value: number) => {
     if (specialty === 0) setSpecialty(value); // first interaction
     else setSpecialty(value);
-  };  
+  };
 
   const handleSubmit = () => {
     if (overall === 0) {
-      alert('Please select a rating');
+      alert("Please select a rating");
       return;
     }
     onSubmit(
@@ -70,9 +76,9 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, onCancel, cafeName }) => {
       drinkQuality,
       vibe,
       ammenities,
-      cafeComments || '',
+      cafeComments || "",
       selectedLabels,
-      drinkReccomendations || '',
+      drinkReccomendations || "",
       coffee,
       matcha,
       tea,
@@ -80,11 +86,11 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, onCancel, cafeName }) => {
     );
     setOverall(0);
     setDrinkQuality(0);
-    setVibe(0); 
+    setVibe(0);
     setAmmenities(0);
-    setCafeComments('');
+    setCafeComments("");
     setSelectedLabels([]);
-    setDrinkReccomendations('');
+    setDrinkReccomendations("");
     setCoffee(1);
     setMatcha(1);
     setTea(1);
@@ -102,7 +108,7 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, onCancel, cafeName }) => {
     "Free Wifi",
     "Group Friendly",
     "Good Service",
-    "Natural Light"
+    "Natural Light",
   ];
 
   const badLabels = [
@@ -116,12 +122,12 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, onCancel, cafeName }) => {
     "Long Wait",
     "Bad Service",
     "Time Limit",
-    "Dirty"
+    "Dirty",
   ];
 
   const toggleLabel = (label: string) => {
-    setSelectedLabels(prev =>
-      prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]
+    setSelectedLabels((prev) =>
+      prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]
     );
   };
 
@@ -129,14 +135,16 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, onCancel, cafeName }) => {
     <SafeAreaView>
       <View style={localStyles.container}>
         <Pressable onPress={onCancel} style={localStyles.cancelButton}>
-            <CancelIcon width={20} height={20} style={localStyles.icon} />
+          <CancelIcon width={20} height={20} style={localStyles.icon} />
         </Pressable>
         <View style={localStyles.cafeHeader}>
           <Text style={localStyles.cafeNameText}>{cafeName}</Text>
           <View style={localStyles.separator} />
         </View>
         <View style={localStyles.header}>
-          <Text style={localStyles.headerText}>Rate your overall experience.</Text>
+          <Text style={localStyles.headerText}>
+            Rate your overall experience.
+          </Text>
         </View>
 
         <View style={localStyles.ratingGroup}>
@@ -145,7 +153,7 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, onCancel, cafeName }) => {
 
         <TextInput
           style={localStyles.commentInput}
-          placeholder= {`Tell use what you thought about ${cafeName}`}
+          placeholder={`Tell use what you thought about ${cafeName}`}
           multiline
           value={cafeComments}
           onChangeText={setCafeComments}
@@ -170,10 +178,15 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, onCancel, cafeName }) => {
 
         <View style={localStyles.separator} />
 
-        <Pressable onPress={handleSubmit} style={[localStyles.button, localStyles.photosButton]}>
+        <Pressable
+          onPress={handleSubmit}
+          style={[localStyles.button, localStyles.photosButton]}
+        >
           <View style={localStyles.iconButtonContent}>
             <AddPhotos width={20} height={20} style={localStyles.icon} />
-            <Text style={[localStyles.buttonText, localStyles.buttonTextPhotos]}>
+            <Text
+              style={[localStyles.buttonText, localStyles.buttonTextPhotos]}
+            >
               Add Photos
             </Text>
           </View>
@@ -210,12 +223,14 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, onCancel, cafeName }) => {
         <View style={localStyles.separator} />
 
         <View style={localStyles.header}>
-          <Text style={localStyles.headerText}>What drink do you recommend?</Text>
+          <Text style={localStyles.headerText}>
+            What drink do you recommend?
+          </Text>
         </View>
 
         <TextInput
           style={[localStyles.commentInput, localStyles.drinkInput]}
-          placeholder= {`ie: Vanilla Latte`}
+          placeholder={`ie: Vanilla Latte`}
           multiline
           value={drinkReccomendations}
           onChangeText={setDrinkReccomendations}
@@ -229,54 +244,64 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, onCancel, cafeName }) => {
 
         <View style={localStyles.ratingRow}>
           <Text style={localStyles.inlineLabel}>Coffee</Text>
-          <RatingSlider value={coffee === 0 ? 1: coffee} onChange={handleCoffeeChange} />
+          <RatingSlider
+            value={coffee === 0 ? 1 : coffee}
+            onChange={handleCoffeeChange}
+          />
         </View>
-        
+
         <View style={localStyles.ratingRow}>
           <Text style={localStyles.inlineLabel}>Matcha</Text>
-          <RatingSlider value={matcha === 0 ? 1 : matcha} onChange={handleMatchaChange} />
+          <RatingSlider
+            value={matcha === 0 ? 1 : matcha}
+            onChange={handleMatchaChange}
+          />
         </View>
 
         <View style={localStyles.ratingRow}>
           <Text style={localStyles.inlineLabel}>Tea</Text>
-          <RatingSlider value={tea === 0 ? 1: tea} onChange={handleTeaChange} />
+          <RatingSlider
+            value={tea === 0 ? 1 : tea}
+            onChange={handleTeaChange}
+          />
         </View>
 
         <View style={localStyles.ratingRow}>
           <Text style={localStyles.inlineLabel}>Specialty</Text>
-          <RatingSlider value={specialty === 0 ? 1: specialty} onChange={handleSpecialtyChange} />
+          <RatingSlider
+            value={specialty === 0 ? 1 : specialty}
+            onChange={handleSpecialtyChange}
+          />
         </View>
 
         <Pressable onPress={handleSubmit} style={localStyles.button}>
           <Text style={localStyles.buttonText}>Add Cafe</Text>
         </Pressable>
-
       </View>
     </SafeAreaView>
   );
 };
 
 const localStyles = StyleSheet.create({
-  separator:{
+  separator: {
     height: 1,
-    backgroundColor: '#ccc',
-    width: '100%',
-    marginTop: 8, 
+    backgroundColor: "#ccc",
+    width: "100%",
+    marginTop: 8,
     marginBottom: 8,
   },
   cafeHeader: {
-    width: '100%',
+    width: "100%",
     marginBottom: 12,
-    alignItems: 'center',
-    position: 'relative', // <== Important to anchor absolute child
-
+    alignItems: "center",
+    position: "relative", // <== Important to anchor absolute child
   },
   cafeNameText: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#000',
-    fontFamily: 'Manrope',
-    fontStyle: 'normal',
+    fontWeight: "700",
+    color: "#000",
+    fontFamily: "Manrope",
+    fontStyle: "normal",
     lineHeight: 22,
   },
   container: {
@@ -284,19 +309,19 @@ const localStyles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   header: {
-    width: '100%',
-    alignItems: 'flex-start',
+    width: "100%",
+    alignItems: "flex-start",
     paddingTop: 8,
     marginBottom: 20,
   },
   headerText: {
-    color: '#000',
-    fontFamily: 'Manrope',
+    color: "#000",
+    fontFamily: "Manrope",
     fontSize: 16,
-    fontStyle: 'normal',
-    fontWeight: '600',
+    fontStyle: "normal",
+    fontWeight: "600",
     lineHeight: 22,
-    textAlign: 'left',
+    textAlign: "left",
     paddingBottom: 4,
   },
   ratingGroup: {
@@ -304,42 +329,42 @@ const localStyles = StyleSheet.create({
   },
   ratingRow: {
     paddingTop: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 16,
   },
   inlineLabel: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
     marginTop: 6,
-    color: '#000',
-    fontFamily: 'Manrope',
-    fontStyle: 'normal',
+    color: "#000",
+    fontFamily: "Manrope",
+    fontStyle: "normal",
     lineHeight: 22,
-    textAlign: 'left',
-    width: '30%',
+    textAlign: "left",
+    width: "30%",
     marginRight: 8,
   },
   sectionHeader: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: 24,
     marginBottom: 8,
-    textAlign: 'center',
-    alignSelf: 'center',
+    textAlign: "center",
+    alignSelf: "center",
   },
   commentInput: {
-    fontFamily: 'Manrope',
+    fontFamily: "Manrope",
     fontSize: 10,
-    backgroundColor: '#eee',
+    backgroundColor: "#eee",
     padding: 10,
     borderRadius: 8,
     marginBottom: 16,
     height: 100,
-    textAlignVertical: 'top', 
+    textAlignVertical: "top",
     // Shadow for iOS
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -351,39 +376,39 @@ const localStyles = StyleSheet.create({
     height: 35,
   },
   button: {
-    backgroundColor: '#000',
+    backgroundColor: "#000",
     paddingVertical: 12,
     borderRadius: 999, // Large enough to make it fully pill-shaped
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 8,
     marginBottom: 8,
   },
-  photosButton:{
-    backgroundColor: '#E2F0DA',
+  photosButton: {
+    backgroundColor: "#E2F0DA",
   },
   cancelButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     left: 0,
     padding: 8, // tap area
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
     fontSize: 16,
   },
   buttonTextPhotos: {
-    color: '#000',
-    fontFamily: 'Manrope',
+    color: "#000",
+    fontFamily: "Manrope",
     fontSize: 16,
-    fontStyle: 'normal',
-    fontWeight: '600',
+    fontStyle: "normal",
+    fontWeight: "600",
     lineHeight: 22,
   },
   iconButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   icon: {
     marginRight: 8, // space between icon and text
@@ -394,16 +419,16 @@ const localStyles = StyleSheet.create({
   },
   labelGroupHeader: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#000',
+    fontWeight: "600",
+    color: "#000",
     marginBottom: 6,
-    fontFamily: 'Manrope',
+    fontFamily: "Manrope",
   },
   labelRow: {
     paddingTop: 8,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
   },
 });
 

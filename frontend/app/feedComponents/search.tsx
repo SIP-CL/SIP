@@ -139,8 +139,10 @@ export default function SearchScreen({ goBack, onCafeSelect }: Props) {
                 style={{ marginRight: 4 }}
               />
               <Text style={styles.resultDetails}>
-                {cafe.ratings?.overall?.rating.toFixed(1) ?? "N/A"} (
-                {cafe.ratings?.overall?.count ?? 0})
+                {cafe.ratings?.overall?.rating
+                  ? cafe.ratings.overall.rating.toFixed(1)
+                  : "N/A"}{" "}
+                ({cafe.ratings?.overall?.count ?? 0})
               </Text>
             </View>
           </TouchableOpacity>

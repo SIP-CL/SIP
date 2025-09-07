@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
-import styles from './styles';
-import Entypo from '@expo/vector-icons/Entypo';
+import React from "react";
+import { View, Text, TouchableOpacity, Image } from "react-native";
+import styles from "./styles";
+import Entypo from "@expo/vector-icons/Entypo";
 
 type Props = {
   cafes: any[];
@@ -17,20 +17,33 @@ export default function TopCafesByDrinks({ cafes, onCafeSelect }: Props) {
           style={styles.rankCard}
           onPress={() => onCafeSelect(cafe._id)}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Image
-              source={require('../../assets/images/cafe.png')}
+              source={require("../../assets/images/cafe.png")}
               style={styles.cafeImage}
             />
             <View style={{ marginLeft: 12, flex: 1 }}>
               <Text>
                 {index + 1}. {cafe.name}
               </Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                <Entypo name="star-outlined" size={15} color="black" style={{ marginRight: 4 }} />
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginTop: 4,
+                }}
+              >
+                <Entypo
+                  name="star-outlined"
+                  size={15}
+                  color="black"
+                  style={{ marginRight: 4 }}
+                />
                 <Text>
-                  {cafe.ratings?.overall?.rating.toFixed(1) ?? 'N/A'} (
-                  {cafe.ratings?.overall?.count ?? 0})
+                  {cafe.ratings?.overall?.rating
+                    ? cafe.ratings.overall.rating.toFixed(1)
+                    : "N/A"}{" "}
+                  ({cafe.ratings?.overall?.count ?? 0})
                 </Text>
               </View>
             </View>
